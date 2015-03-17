@@ -1,0 +1,866 @@
+//
+// This project is an adaptation of Marek Cel's QFlightInstruments tools to use
+// the JSBSim flight dynamics engine (http://sourceforge.net/projects/jsbsim/).
+// The PLIB libraries (http://plib.sourceforge.net) are used for joystick
+// functionality.  The QFlightInstruments project is hosted at
+// (http://sourceforge.net/projects/qfi/).
+//
+// License is GPLv3.
+// David Culp (daveculp@cox.net), Jan 2015
+/***************************************************************************//**
+ * @file example/MainWindow.cpp
+ * @author  Marek M. Cel <marekcel@mscsim.org>
+ *
+ * @section LICENSE
+ *
+ * Copyright (C) 2013 Marek M. Cel
+ *
+ * This file is part of QFlightInstruments. You can redistribute and modify it
+ * under the terms of GNU General Public License as published by the Free
+ * Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.
+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Further information about the GNU General Public License can also be found
+ * on the world wide web at http://www.gnu.org.
+ *
+ * ---
+ *
+ * Copyright (C) 2013 Marek M. Cel
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom
+ * the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ ******************************************************************************/
+#ifndef MAINWINDOW_CPP
+#define MAINWINDOW_CPP
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
+
+#include <iostream>
+#include <math.h>
+#include "MainWindow.h"
+#include "ui_MainWindow.h"
+
+////////////////////////////////////////////////////////////////////////////////
+
+using namespace std;
+using namespace JSBSim;
+
+////////////////////////////////////////////////////////////////////////////////
+
+MainWindow::MainWindow( QWidget * parent ) :
+        QMainWindow( parent ),
+        m_ui( new Ui::MainWindow )
+
+{
+
+    m_ui->setupUi( this );
+
+    // Path to your QtJSBSim directory (edit this to match your setup)
+    installPath = "/home/dave/Desktop/QtJSBSim/";
+    iniPath = installPath + "qtjsbsim.ini";
+
+    // Set up the UI frame rate timer
+    framerate = 0.0;
+    dt = 0.0;
+    count = 0;
+    UItimer = new QTime();
+    UItimer->start();
+
+    // Set up time stamp for the UDP datagrams
+    timeStamp = new QTime();
+    timeStamp->start();
+
+    // Initialize variables
+    aileron = elevator = rudder = throttle = 0.0;
+    pitch_trim = -0.15;
+    aileron_trim = rudder_trim = 0.0;
+    pitch_trim_pos = aileron_trim_pos = rudder_trim_pos = 0.0;
+    aileron_pos = elevator_pos = rudder_pos = throttle_pos = 0.0;
+    aoa = beta = pitch = roll = yaw = 0.0;
+    altitude = latitude = longitude = 0.0;
+    climb_rate = airspeed = mach = 0.0;
+    fuel_total = weight = empty_weight = payload = 0.0;
+    payload_cmd = 10000.0;
+    wind_dir = wind_speed = deltaT = 0.0;
+    Pt = Qbar = TAT = OAT = Re = g = dt = 0.0;
+    numEngines = 0;
+    flap_cmd = 0.0;
+    gear_cmd = 1.0;
+    jsbsimTerminate = 0.0;
+    jsbsimDataSocket = NULL;
+    jsbsimControlsSocket = NULL;
+    JSBSim = NULL;
+    connected = false;
+    counter = 0;
+    for (uint i=0; i<10; i++) {
+        thrust[i] = 0.0;
+        n1[i] = 0.0;
+        n2[i] = 0.0;
+        epr[i] = 0.0;
+        egt[i] = 0.0;
+        ff[i] = 0.0;
+        rpm[i] = 0.0;
+        rpm_prop[i] = 0.0;
+        gph[i] = 0.0;
+        power[i] = 0.0;
+        torque[i] = 0.0;
+        prop_angle[i] = 0.0;
+    }
+    hostAddress = QHostAddress::LocalHost;
+    inputPort = 5138;
+    outputPort = 5139;
+    telnetPort = 5137;
+
+    // Group some radio buttons
+    gearCmd = new QButtonGroup(m_ui->ControlsTab);
+    gearCmd->addButton(m_ui->GearUpButton);
+    gearCmd->addButton(m_ui->GearDownButton);
+    m_ui->GearDownButton->setChecked(true);
+    sbCmd = new QButtonGroup(m_ui->ControlsTab);
+    sbCmd->addButton(m_ui->SBUpButton);
+    sbCmd->addButton(m_ui->SBDownButton);
+    m_ui->SBDownButton->setChecked(true);
+
+    // Read settings from init file
+    readSettings();
+
+    // Set up joystick
+    joystick = new jsJoystick();
+    jsInit();
+    if (joystick->notWorking()) m_ui->console->appendPlainText("Joystick not found!");
+    m_ui->label_joystick->setText(joystick->getName());
+    axes = joystick->getNumAxes();
+    m_ui->console->appendPlainText("Joystick axes = " + QString::number(axes));
+    ax = new float[axes];
+    NumButtons = joystick->getNumButtons();
+    m_ui->console->appendPlainText("Joystick buttons = " + QString::number(NumButtons));
+    b = new int[NumButtons];
+
+
+    // Set up JSBSim
+    JSBSim = new jsbsim();
+    connect(JSBSim, SIGNAL(error(QProcess::ProcessError)), this,
+                    SLOT(processError(QProcess::ProcessError)));
+    JSBSim->connect(JSBSim, SIGNAL(logString(const QString&)),
+                 m_ui->jconsole, SLOT(appendPlainText(QString)));
+    connect(m_ui->StartJSBSimButton, SIGNAL(clicked()), this,
+                     SLOT(StartJSBSim()));
+
+    // Set up timer for the main simulation loop (100 hz).
+    iterating = false;
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(MainLoop()));
+    timer->start(10.0);
+    iterating = true;
+
+    // Set up UDP output timer.  Sends datagrams to JSBSim at 10 hz.
+    UDPOutTimer = new QTimer(this);
+    connect(UDPOutTimer, SIGNAL(timeout()), this, SLOT(setJSBSimControls()));
+    UDPOutTimer->start(100.0);
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+MainWindow::~MainWindow()
+{
+    if (timer) timer->stop();
+    if (UItimer) delete UItimer;
+    if (timeStamp) delete timeStamp;
+    if (JSBSim) JSBSim->close();
+    if (ax) delete[] ax;
+    if (b) delete[] b;
+    if (joystick) delete joystick;
+    if (timer) delete timer;
+    if (JSBSim) delete JSBSim;
+    if (jsbsimDataSocket) delete jsbsimDataSocket;
+    if (jsbsimControlsSocket) delete jsbsimControlsSocket;
+    if ( m_ui ) delete m_ui; m_ui = 0;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::MainLoop()
+{
+    if (count == 100) {
+        framerate = 100.0 / UItimer->restart() * 1000.0;
+        dt = 1.0 / framerate;
+        count = 0;
+    }
+
+    get_joystick_inputs();
+    update_joystick_display();
+    getJSBSimData();
+    UpdateDisplays();
+
+    count++;
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::get_joystick_inputs(void)
+{
+    if (joystick->notWorking()) return;
+
+    joystick->read(&buttons, ax);
+    switch (axes) {
+    case 0: break;
+    case 1:
+        aileron = ax[0];
+        break;
+    case 2:
+        aileron = ax[0]; elevator = -ax[1];
+        break;
+    case 3:
+        aileron = ax[0]; elevator = -ax[1]; rudder = -ax[2];
+        break;
+    case 4:
+        aileron = ax[0]; elevator = -ax[1]; rudder = -ax[2]; throttle = (ax[3]-1.0)/-2.0;
+        break;
+    case 5:
+        aileron = ax[0]; elevator = -ax[1]; rudder = -ax[2]; throttle = (ax[3]-1.0)/-2.0;
+        pitch_trim = ax[4];
+        break;
+    case 6:
+        aileron = ax[0]; elevator = -ax[1]; rudder = -ax[2]; throttle = (ax[3]-1.0)/-2.0;
+         aileron_trim += ax[4] * 0.002; pitch_trim -= ax[5] * 0.002;
+        break;
+    default:
+        aileron = ax[0]; elevator = -ax[1]; rudder = -ax[2]; throttle = (ax[3]-1.0)/-2.0;
+        aileron_trim += ax[4] * dt/5.0; pitch_trim -= ax[5] * dt/5.0;
+        break;
+    }
+
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::update_joystick_display(void)
+{
+    if (joystick->notWorking()) return;
+
+    m_ui->aileronSlider->setValue(aileron*100);
+    m_ui->aileronLabel->setText(QString::number(aileron, 'f', 3));
+    m_ui->elevatorSlider->setValue(elevator*100);
+    m_ui->elevatorLabel->setText(QString::number(elevator, 'f', 3));
+    m_ui->rudderSlider->setValue(-rudder*100);
+    m_ui->rudderLabel->setText(QString::number(rudder, 'f', 3));
+    m_ui->throttleSlider->setValue(throttle*100);
+    m_ui->throttleLabel->setText(QString::number(throttle, 'f', 3));
+
+    for (uint i=0; i<(uint)NumButtons; i++){
+        b[i] = buttons & 1;
+        buttons = buttons >> 1;
+    }
+
+    if (NumButtons > 0 && b[0]){
+           m_ui->jsButton_0->setChecked(true);
+    }else {
+           m_ui->jsButton_0->setChecked(false);
+    }
+    if (NumButtons > 1 && b[1]){
+           m_ui->jsButton_1->setChecked(true);
+     }else {
+           m_ui->jsButton_1->setChecked(false);
+    }
+    if (NumButtons > 2 && b[2]){
+           m_ui->jsButton_2->setChecked(true);
+     }else {
+           m_ui->jsButton_2->setChecked(false);
+    }
+    if (NumButtons > 3 && b[3]){
+           m_ui->jsButton_3->setChecked(true);
+     }else {
+           m_ui->jsButton_3->setChecked(false);
+    }
+    if (NumButtons > 4 && b[4]){
+           m_ui->jsButton_4->setChecked(true);
+     }else {
+           m_ui->jsButton_4->setChecked(false);
+    }
+    if (NumButtons > 5 && b[5]){
+           m_ui->jsButton_5->setChecked(true);
+     }else {
+           m_ui->jsButton_5->setChecked(false);
+    }
+    if (NumButtons > 6 && b[6]){
+           m_ui->jsButton_6->setChecked(true);
+     }else {
+           m_ui->jsButton_6->setChecked(false);
+    }
+    if (NumButtons > 7 && b[7]){
+           m_ui->jsButton_7->setChecked(true);
+     }else {
+           m_ui->jsButton_7->setChecked(false);
+    }
+    if (NumButtons > 8 && b[8]){
+           m_ui->jsButton_8->setChecked(true);
+     }else {
+           m_ui->jsButton_8->setChecked(false);
+    }
+    if (NumButtons > 9 && b[9]){
+           m_ui->jsButton_9->setChecked(true);
+     }else {
+           m_ui->jsButton_9->setChecked(false);
+    }
+    if (NumButtons > 10 && b[10]){
+           m_ui->jsButton_10->setChecked(true);
+     }else {
+           m_ui->jsButton_10->setChecked(false);
+    }
+    if (NumButtons > 11 && b[11]){
+           m_ui->jsButton_11->setChecked(true);
+     }else {
+           m_ui->jsButton_11->setChecked(false);
+    }
+    if (NumButtons > 12 && b[12]){
+           m_ui->jsButton_12->setChecked(true);
+     }else {
+           m_ui->jsButton_12->setChecked(false);
+    }
+
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// Gets keyboard key events and sets associated variables
+//
+void MainWindow::keyPressEvent(QKeyEvent* event)
+{
+    int keycode = event->key();
+    switch (keycode) {
+        case Qt::Key_G:
+           toggle( &gear_cmd );           // toggle gear
+           break;
+        case Qt::Key_BracketRight:        // flaps down one step
+           step( &flap_cmd, 9, 1 );
+           break;
+        case Qt::Key_BracketLeft:         // flaps up one step
+           step( &flap_cmd, 9, -1 );
+           break;
+        case Qt::Key_T:
+           toggle( &jsbsimTerminate );    // terminate JSBSim
+           break;
+    }
+
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Reads a waiting datagram from JSBSim and sets variables.  The datagram is a
+// series of comma separated strings.
+//
+void MainWindow::getJSBSimData(void)
+{
+    if (!connected) return;
+    if (!jsbsimDataSocket->hasPendingDatagrams()) return;
+
+    QByteArray datagram;
+    QList<QByteArray> tokens;
+    QVector<double> data(200);
+
+    datagram.resize(jsbsimDataSocket->pendingDatagramSize());
+    QHostAddress sender;
+    quint16 senderPort;
+    jsbsimDataSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
+    if (datagram.at(0) == 0x3C) return;       // throw away JSBSim's header
+
+    datagram = datagram.trimmed();            // remove white space
+    datagram.append(',');                     // add a ',' at the end
+    tokens = datagram.split(',');             // tokenize
+
+    for (int i=0; i<tokens.size(); i++) {
+        data[i] = tokens[i].toDouble();
+    }
+
+    simtime = data.at(0);
+    airspeed = data.at(1);
+    altitude = data.at(2);
+    pitch = data.at(3);
+    roll = data.at(4);
+    climb_rate = data.at(5) * 60.0;  // fps to fpm
+    mach = data.at(6);
+    beta = data.at(7);
+    yaw = data.at(8);
+    aoa = data.at(9);
+    P = data.at(10);
+    Q = data.at(11);
+    R = data.at(12);
+    vtrue = data.at(13);
+    gs = data.at(14) * 0.5924838;    // fps to kts
+    vN = data.at(15);
+    vE = data.at(16);
+    vD = data.at(17);
+    vU = data.at(18);
+    vV = data.at(19);
+    vW = data.at(20);
+    altAGL = data.at(21);
+    latitude = data.at(22);
+    longitude = data.at(23);
+    GeoLat = data.at(24);
+    thrust[0] = data.at(25);
+    thrust[1] = data.at(26);
+    n1[0] = data.at(27);
+    n1[1] = data.at(28);
+    n2[0] = data.at(29);
+    n2[1] = data.at(30);
+    ff[0] = data.at(31) * 3600.0;    // lbs/sec to lbs/hr
+    ff[1] = data.at(32) * 3600.0;    // lbs/sec to lbs/hr
+    fuel_total = data.at(33);
+    weight = data.at(34);
+    empty_weight = data.at(35);
+    gear_pos = data.at(36);
+    flap_pos = data.at(37);
+    speedbrake_pos = data.at(38);
+    aileron_pos = data.at(39);
+    elevator_pos = data.at(40);
+    rudder_pos = data.at(41);
+    payload = data.at(42);
+    Pt = data.at(43);
+    Qbar = data.at(44);
+    TAT = data.at(45);
+    OAT = (data.at(46) -491.67) * 0.5555555556;     // Rankine to Celsius
+    Re = data.at(47);
+    g = data.at(48) * -1.0;
+    rho = data.at(49);
+    jsbsim_dt = data.at(50);
+
+
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////
+// Sends commands via UDP datagram to JSBSim as comma-separated strings.
+//
+void MainWindow::setJSBSimControls(void)
+{
+   if (!connected) return;
+
+   QByteArray datagram;
+   datagram.clear();
+
+   datagram.append(QString::number((double)timeStamp->elapsed(), 'f', 6));
+   datagram.append(',');
+   datagram.append(QString::number(aileron, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(elevator, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(rudder, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(pitch_trim, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(aileron_trim, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(rudder_trim, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(throttle, 'f', 5));   // one for each engine
+   datagram.append(',');
+   datagram.append(QString::number(throttle, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(flap_cmd, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(gear_cmd, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(speedbrakes_cmd, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(wind_dir*0.017453293, 'f', 5));   // degrees to radians
+   datagram.append(',');
+   datagram.append(QString::number(wind_speed*1.687809857, 'f', 5));   // knots to fps
+   datagram.append(',');
+   datagram.append(QString::number(deltaT*1.8, 'f', 5));    // Celsius to Rankine
+   datagram.append(',');
+   datagram.append(QString::number(payload_cmd, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(jsbsimTerminate, 'f', 0));
+   datagram.append(',');
+
+   jsbsimControlsSocket->writeDatagram(datagram, hostAddress, outputPort);
+
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::UpdateDisplays()
+{
+
+  // Send data to PFD
+  m_ui->widgetPFD->setAirspeed(airspeed);
+  m_ui->widgetPFD->setAltitude(altitude);
+  m_ui->widgetPFD->setPitch(pitch);
+  m_ui->widgetPFD->setRoll(roll);
+  m_ui->widgetPFD->setClimbRate(climb_rate);
+  m_ui->widgetPFD->setMachNo(mach);
+  m_ui->widgetPFD->setSlipSkid(beta);
+  m_ui->widgetPFD->setHeading(yaw);   // for now, true heading
+
+  // Send data to tab 1 (Attitude)
+  m_ui->dataLabel_1->setText(QString::number(pitch, 'f', 4));
+  m_ui->dataLabel_2->setText(QString::number(roll, 'f', 4));
+  m_ui->dataLabel_3->setText(QString::number(yaw, 'f',4));
+  m_ui->dataLabel_4->setText(QString::number(aoa, 'f', 4));
+  m_ui->dataLabel_5->setText(QString::number(beta, 'f', 4));
+  m_ui->dataLabel_6->setText(QString::number(phi, 'f', 6));
+  m_ui->dataLabel_7->setText(QString::number(theta, 'f', 4));
+  m_ui->dataLabel_8->setText(QString::number(psi, 'f', 4));
+  m_ui->dataLabel_9->setText(QString::number(P, 'f', 4));
+  m_ui->dataLabel_10->setText(QString::number(Q, 'f', 4));
+  m_ui->dataLabel_11->setText(QString::number(R, 'f', 4));
+               // 12
+
+  // Send data to tab 2 (Speed)
+  m_ui->dataLabel_13->setText(QString::number(airspeed, 'f', 2));
+  m_ui->dataLabel_14->setText(QString::number(vtrue, 'f', 2));
+  m_ui->dataLabel_15->setText(QString::number(mach, 'f', 3));
+  m_ui->dataLabel_16->setText(QString::number(gs, 'f', 2));
+  m_ui->dataLabel_17->setText(QString::number(climb_rate, 'f', 2));
+  m_ui->dataLabel_18->setText(QString::number(vN, 'f', 4));
+  m_ui->dataLabel_19->setText(QString::number(vE, 'f', 4));
+  m_ui->dataLabel_20->setText(QString::number(vD, 'f', 4));
+  m_ui->dataLabel_21->setText(QString::number(vU, 'f', 4));
+  m_ui->dataLabel_22->setText(QString::number(vV, 'f', 4));
+  m_ui->dataLabel_23->setText(QString::number(vW, 'f', 4));
+               // 24
+
+  // Send data to tab 3 (Position)
+  m_ui->dataLabel_25->setText(QString::number(altitude, 'f', 2));
+  m_ui->dataLabel_26->setText(QString::number(altAGL, 'f', 2));
+  m_ui->dataLabel_27->setText(QString::number(latitude, 'f', 2));
+  m_ui->dataLabel_28->setText(QString::number(longitude, 'f', 2));
+  m_ui->dataLabel_29->setText(QString::number(GeoLat, 'f', 2));
+  m_ui->dataLabel_30->setText(QString::number(GeoAlt, 'f', 4));
+               // 31-36
+
+  // Send data to tab 4 (Propulsion)
+  m_ui->dataLabel_37->setText(QString::number(thrust[0], 'f', 0));
+  m_ui->dataLabel_38->setText(QString::number(thrust[1], 'f', 0));
+  m_ui->dataLabel_39->setText(QString::number(thrust[2], 'f', 0));
+  m_ui->dataLabel_40->setText(QString::number(thrust[3], 'f', 0));
+  m_ui->dataLabel_41->setText(QString::number(n1[0], 'f', 2));
+  m_ui->dataLabel_42->setText(QString::number(n1[1], 'f', 2));
+  m_ui->dataLabel_43->setText(QString::number(n1[2], 'f', 2));
+  m_ui->dataLabel_44->setText(QString::number(n1[3], 'f', 2));
+  m_ui->dataLabel_45->setText(QString::number(n2[0], 'f', 2));
+  m_ui->dataLabel_46->setText(QString::number(n2[1], 'f', 2));
+  m_ui->dataLabel_47->setText(QString::number(n2[2], 'f', 2));
+  m_ui->dataLabel_48->setText(QString::number(n2[3], 'f', 2));
+  m_ui->dataLabel_49->setText(QString::number(epr[0], 'f', 2));
+  m_ui->dataLabel_50->setText(QString::number(epr[1], 'f', 2));
+  m_ui->dataLabel_51->setText(QString::number(epr[2], 'f', 2));
+  m_ui->dataLabel_52->setText(QString::number(epr[3], 'f', 2));
+  m_ui->dataLabel_53->setText(QString::number(egt[0], 'f', 2));
+  m_ui->dataLabel_54->setText(QString::number(egt[1], 'f', 2));
+  m_ui->dataLabel_55->setText(QString::number(egt[2], 'f', 2));
+  m_ui->dataLabel_56->setText(QString::number(egt[3], 'f', 2));
+  m_ui->dataLabel_57->setText(QString::number(ff[0], 'f', 0));
+  m_ui->dataLabel_58->setText(QString::number(ff[1], 'f', 0));
+  m_ui->dataLabel_59->setText(QString::number(ff[2], 'f', 0));
+  m_ui->dataLabel_60->setText(QString::number(ff[3], 'f', 0));
+  m_ui->dataLabel_61->setText(QString::number(rpm[0], 'f', 2));
+  m_ui->dataLabel_62->setText(QString::number(rpm[1], 'f', 2));
+  m_ui->dataLabel_63->setText(QString::number(rpm[2], 'f', 2));
+  m_ui->dataLabel_64->setText(QString::number(rpm[3], 'f', 2));
+               // 65-84
+
+  // Send data to tab 5 (Sim)
+  m_ui->dataLabel_85->setText("737");
+  m_ui->dataLabel_86->setText(QString::number(simtime, 'f', 2));
+  m_ui->dataLabel_87->setText(QString::number(jsbsim_dt, 'f', 6));
+  //m_ui->dataLabel_88->setText(QString::number(_simtime, 'f', 2));
+  m_ui->dataLabel_89->setText(QString::number(Pt, 'f', 2));
+  m_ui->dataLabel_90->setText(QString::number(Qbar, 'f', 2));
+  m_ui->dataLabel_91->setText(QString::number(TAT, 'f', 2));
+  m_ui->dataLabel_92->setText(QString::number(OAT, 'f', 2));
+  m_ui->dataLabel_93->setText(QString::number(Re, 'f', 0));
+  m_ui->dataLabel_94->setText(QString::number(g, 'f', 2));
+  m_ui->dataLabel_95->setText(QString::number(rho, 'f', 9));
+  m_ui->dataLabel_96->setText(QString::number(framerate, 'f', 2));
+
+  // Send data to tab 6 (Wt/Bal)
+  m_ui->dataLabel_97->setText(QString::number(weight, 'f', 2));
+  m_ui->dataLabel_98->setText(QString::number(empty_weight, 'f', 2));
+  m_ui->dataLabel_99->setText(QString::number(fuel_total, 'f', 2));
+  m_ui->dataLabel_100->setText(QString::number(payload, 'f', 2));
+  //m_ui->dataLabel_101->setText(QString::number(_simtime, 'f', 2));
+  //m_ui->dataLabel_102->setText(QString::number(_simtime, 'f', 2));
+  //m_ui->dataLabel_103->setText(QString::number(_simtime, 'f', 2));
+  //m_ui->dataLabel_104->setText(QString::number(_simtime, 'f', 2));
+  //m_ui->dataLabel_105->setText(QString::number(_simtime, 'f', 2));
+  //m_ui->dataLabel_106->setText(QString::number(_simtime, 'f', 2));
+  //m_ui->dataLabel_107->setText(QString::number(_simtime, 'f', 2));
+  //m_ui->dataLabel_108->setText(QString::number(_simtime, 'f', 2));
+
+  // Send data to tab 7 (Controls)
+  m_ui->dataLabel_109->setText(QString::number(elevator_pos, 'f', 3));
+  m_ui->dataLabel_110->setText(QString::number(pitch_trim_pos, 'f', 2));
+  m_ui->dataLabel_111->setText(QString::number(aileron_pos, 'f', 3));
+  m_ui->dataLabel_112->setText(QString::number(aileron_trim_pos, 'f', 2));
+  m_ui->dataLabel_113->setText(QString::number(rudder_pos, 'f', 3));
+  m_ui->dataLabel_114->setText(QString::number(rudder_trim_pos, 'f', 2));
+  m_ui->dataLabel_115->setText(QString::number(gear_pos, 'f', 2));
+  m_ui->dataLabel_116->setText(QString::number(flap_pos, 'f', 2));
+  m_ui->dataLabel_117->setText(QString::number(speedbrake_pos, 'f', 2));
+  //m_ui->dataLabel_118->setText(QString::number(_simtime, 'f', 2));
+  //m_ui->dataLabel_119->setText(QString::number(_simtime, 'f', 2));
+  //m_ui->dataLabel_120->setText(QString::number(_simtime, 'f', 2));
+
+
+  m_ui->widgetPFD->update();
+
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::toggle(double *number)
+{
+    if (*number != 0.0) *number = 0.0;
+    else *number = 1.0;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::step(double *number, int numsteps, int direction)
+{
+    if (direction > 0){
+        if (*number > 0.99999) return;
+        *number = (*number) + 1.0/numsteps;
+        if (*number > 1.0) *number = 1.0;
+    } else if (direction < 0){
+        if (*number < 0.00001) return;
+        *number = (*number) - 1.0/numsteps;
+        if (*number < 0.0) *number = 0.0;
+    }
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::processError(QProcess::ProcessError err) {
+    switch(err)
+    {
+    case QProcess::FailedToStart:
+        QMessageBox::information(0,"FailedToStart","FailedToStart");
+        break;
+    case QProcess::Crashed:
+        QMessageBox::information(0,"Crashed","Crashed");
+        break;
+    case QProcess::Timedout:
+        QMessageBox::information(0,"FailedToStart","FailedToStart");
+        break;
+    case QProcess::WriteError:
+        QMessageBox::information(0,"Timedout","Timedout");
+        break;
+    case QProcess::ReadError:
+        QMessageBox::information(0,"ReadError","ReadError");
+        break;
+    case QProcess::UnknownError:
+        QMessageBox::information(0,"UnknownError","UnknownError");
+        break;
+    default:
+        QMessageBox::information(0,"default","default");
+        break;
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::StartJSBSim(void) {
+
+    if (!JSBSim) return;
+
+    if (JSBSim->state() != (QProcess::Running)) {
+
+          JSBSim->start(JSBSimExecutable, JSBSimArgs);
+          m_ui->console->appendPlainText("Starting JSBSim");
+
+    }
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::readSettings(void) {
+
+    settings = new QSettings(iniPath, QSettings::IniFormat);
+     m_ui->console->appendPlainText("Reading settings from: " + settings->fileName());
+
+    JSBSimExecutable = settings->value("cmdline/executable").toString();
+    JSBSimArgs << settings->value("cmdline/root").toString();
+    JSBSimArgs << settings->value("cmdline/realtime").toString();
+    JSBSimArgs << settings->value("cmdline/aircraft").toString();
+    JSBSimArgs << settings->value("cmdline/initfile").toString();
+    QString arg1 = settings->value("cmdline/arg1").toString();
+    QString arg2 = settings->value("cmdline/arg2").toString();
+    QString arg3 = settings->value("cmdline/arg3").toString();
+    QString arg4 = settings->value("cmdline/arg4").toString();
+    QString arg5 = settings->value("cmdline/arg5").toString();
+    QString arg6 = settings->value("cmdline/arg6").toString();
+
+    if (arg1.length() > 0) JSBSimArgs << arg1;
+    if (arg2.length() > 0) JSBSimArgs << arg2;
+    if (arg3.length() > 0) JSBSimArgs << arg3;
+    if (arg4.length() > 0) JSBSimArgs << arg4;
+    if (arg5.length() > 0) JSBSimArgs << arg5;
+    if (arg6.length() > 0) JSBSimArgs << arg6;
+
+    inputPort = settings->value("ports/input").toInt();
+    outputPort = settings->value("ports/output").toInt();
+    telnetPort = settings->value("ports/telnet").toInt();
+
+    delete settings;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::writeSettings(void) {
+
+    settings = new QSettings(iniPath, QSettings::IniFormat);
+     m_ui->console->appendPlainText("Writing settings to: " + settings->fileName());
+
+    // do nothing, yet
+
+    delete settings;
+
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::on_ConnectButton_clicked()   // connect/disconnect socket communication
+{
+
+    if (!connected) {
+      // Set up UDP data input from JSBSim
+      jsbsimDataSocket = new QUdpSocket(this);
+      jsbsimDataSocket->bind(inputPort, QUdpSocket::ShareAddress);
+      if (jsbsimDataSocket) {
+          m_ui->console->appendPlainText("Established UDP input socket at port " + QString::number(inputPort));
+      }
+
+      // Set up UDP data output to JSBSim
+      jsbsimControlsSocket = new QUdpSocket(this);
+      jsbsimControlsSocket->bind(outputPort, QUdpSocket::ShareAddress);
+      if (jsbsimControlsSocket) {
+          m_ui->console->appendPlainText("Established UDP output socket at port " + QString::number(outputPort));
+      }
+
+      if (jsbsimDataSocket && jsbsimControlsSocket) connected = true;
+
+    } else {
+
+        delete jsbsimDataSocket;
+        delete jsbsimControlsSocket;
+        jsbsimDataSocket = NULL;
+        jsbsimControlsSocket = NULL;
+        connected = false;
+        m_ui->console->appendPlainText("Closed UDP input socket.");
+        m_ui->console->appendPlainText("Closed UDP output socket.");
+        jsbsimTerminate = 0;
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::on_GearUpButton_clicked()
+{
+    gear_cmd = 0.0;   // command gear up
+}
+
+void MainWindow::on_GearDownButton_clicked()
+{
+    gear_cmd = 1.0;   // command gear down
+}
+
+void MainWindow::on_FlapsUpButton_clicked()
+{
+    step( &flap_cmd, 9, -1 );   // raise flaps one step
+}
+
+void MainWindow::on_FlapsDownButton_clicked()
+{
+    step( &flap_cmd, 9, 1 );    // lower flaps one step
+}
+
+void MainWindow::on_SBUpButton_clicked()
+{
+    speedbrakes_cmd = 1.0;      // extend speed brakes
+}
+
+void MainWindow::on_SBDownButton_clicked()
+{
+    speedbrakes_cmd = 0.0;      // retract speed brakes
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    // disable joystick, does nothing yet
+}
+
+void MainWindow::on_pushButton_8_clicked()
+{
+    toggle( &jsbsimTerminate );    // terminate JSBSim
+}
+
+void MainWindow::on_payloadWeightEdit_returnPressed()
+{
+    payload_cmd = (m_ui->payloadWeightEdit->text()).toDouble();
+}
+
+void MainWindow::on_windDirEdit_returnPressed()
+{
+    wind_dir = (m_ui->windDirEdit->text()).toDouble();
+}
+
+void MainWindow::on_windSpeedEdit_returnPressed()
+{
+    wind_speed = (m_ui->windSpeedEdit->text()).toDouble();
+}
+
+void MainWindow::on_temperatureEdit_returnPressed()
+{
+    deltaT = (m_ui->temperatureEdit->text()).toDouble();
+}
+
+

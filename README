@@ -1,0 +1,25 @@
+The QtJSBSim project is an adaptation of Marek Cel's QFlightInstruments
+(http://sourceforge.net/projects/qfi/) example application to use the
+JSBSim flight dynamics model (http://sourceforge.net/projects/jsbsim/) and
+the PLIB libraries (http://plib.sourceforge.net) to create a flight
+simulator.
+
+The app is built with QtCreator, and requires the following dynamic libraries
+be installed: PLIB (-lplib) and JSBSim (-lJSBSim).
+
+David Culp
+Jan 2015
+daveculp@cox.net
+http://sourceforge.net/projects/qtjsbsim/
+
+LICENSE:  GPLv3 (http://gnu.org/licenses/gpl.txt)
+
+
+VERSION 2.0 NOTES ***********************************************************
+
+1. You can now use the Start/Stop button to launch JSBSim
+2. JSBSim console output (stdout) is written to a QPlainTextEdit widget
+3. Increased the amount of data sent/received between QtJSBSim and JSBSim
+4. The ini file is now in the source directory. This is to allow easy access
+   to it for editing.  Please edit your installPath variable in mainwindow.cpp
+   to match your system.
