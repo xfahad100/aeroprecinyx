@@ -4,8 +4,8 @@ JSBSim flight dynamics model (http://sourceforge.net/projects/jsbsim/) and
 the PLIB libraries (http://plib.sourceforge.net) to create a flight
 simulator.
 
-The app is built with QtCreator, and requires the following dynamic libraries
-be installed: PLIB (-lplib) and JSBSim (-lJSBSim).
+The app is built with QtCreator, and requires the following static libraries
+be installed: PLIB (specifically libplibjs.a and libplibul.a).
 
 David Culp
 Jan 2015
