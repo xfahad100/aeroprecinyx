@@ -150,6 +150,7 @@ public:
     double wind_dir, wind_speed, deltaT;
     double Pt, Qbar, TAT, OAT, Re, g, rho;
     double jsbsim_dt, jsbsimTerminate;
+    float  ui_rate, output_rate;
     int counter;
 
     quint16 outputPort, inputPort, telnetPort;

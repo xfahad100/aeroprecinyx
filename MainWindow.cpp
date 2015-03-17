@@ -7,53 +7,8 @@
 //
 // License is GPLv3.
 // David Culp (daveculp@cox.net), Jan 2015
-/***************************************************************************//**
- * @file example/MainWindow.cpp
- * @author  Marek M. Cel <marekcel@mscsim.org>
- *
- * @section LICENSE
- *
- * Copyright (C) 2013 Marek M. Cel
- *
- * This file is part of QFlightInstruments. You can redistribute and modify it
- * under the terms of GNU General Public License as published by the Free
- * Software Foundation; either version 3 of the License, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * Further information about the GNU General Public License can also be found
- * on the world wide web at http://www.gnu.org.
- *
- * ---
- *
- * Copyright (C) 2013 Marek M. Cel
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom
- * the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- ******************************************************************************/
+/***************************************************************************/
+
 #ifndef MAINWINDOW_CPP
 #define MAINWINDOW_CPP
 #endif
@@ -84,7 +39,7 @@ MainWindow::MainWindow( QWidget * parent ) :
     installPath = "/home/dave/Desktop/QtJSBSim/";
     iniPath = installPath + "qtjsbsim.ini";
 
-    // Set up the UI frame rate timer
+    // Set up the UI frame rate monitoring timer
     framerate = 0.0;
     dt = 0.0;
     count = 0;
@@ -117,6 +72,8 @@ MainWindow::MainWindow( QWidget * parent ) :
     JSBSim = NULL;
     connected = false;
     counter = 0;
+    ui_rate = 100.0;
+    output_rate = 10;
     for (uint i=0; i<10; i++) {
         thrust[i] = 0.0;
         n1[i] = 0.0;
@@ -152,14 +109,18 @@ MainWindow::MainWindow( QWidget * parent ) :
     // Set up joystick
     joystick = new jsJoystick();
     jsInit();
-    if (joystick->notWorking()) m_ui->console->appendPlainText("Joystick not found!");
     m_ui->label_joystick->setText(joystick->getName());
     axes = joystick->getNumAxes();
-    m_ui->console->appendPlainText("Joystick axes = " + QString::number(axes));
     ax = new float[axes];
     NumButtons = joystick->getNumButtons();
-    m_ui->console->appendPlainText("Joystick buttons = " + QString::number(NumButtons));
     b = new int[NumButtons];
+
+    if (joystick->notWorking()) {
+        m_ui->console->appendPlainText("Joystick not found!");
+    } else {
+        m_ui->console->appendPlainText("Joystick axes = " + QString::number(axes));
+        m_ui->console->appendPlainText("Joystick buttons = " + QString::number(NumButtons));
+    }
 
 
     // Set up JSBSim
@@ -171,17 +132,17 @@ MainWindow::MainWindow( QWidget * parent ) :
     connect(m_ui->StartJSBSimButton, SIGNAL(clicked()), this,
                      SLOT(StartJSBSim()));
 
-    // Set up timer for the main simulation loop (100 hz).
+    // Set up timer for the UI main simulation loop (default is 100 hz).
     iterating = false;
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(MainLoop()));
-    timer->start(10.0);
+    timer->start(1000.0/ui_rate);
     iterating = true;
 
-    // Set up UDP output timer.  Sends datagrams to JSBSim at 10 hz.
+    // Set up UDP output timer for sending datagrams to JSBSim. (default is 10 hz).
     UDPOutTimer = new QTimer(this);
     connect(UDPOutTimer, SIGNAL(timeout()), this, SLOT(setJSBSimControls()));
-    UDPOutTimer->start(100.0);
+    UDPOutTimer->start(1000.0/output_rate);
 
 }
 
@@ -189,23 +150,28 @@ MainWindow::MainWindow( QWidget * parent ) :
 
 MainWindow::~MainWindow()
 {
-    if (timer) timer->stop();
-    if (UItimer) delete UItimer;
-    if (timeStamp) delete timeStamp;
-    if (JSBSim) JSBSim->close();
-    if (ax) delete[] ax;
-    if (b) delete[] b;
-    if (joystick) delete joystick;
-    if (timer) delete timer;
-    if (JSBSim) delete JSBSim;
+    delete UItimer;
+    delete timeStamp;
+    delete UDPOutTimer;
+    delete timer;
+    delete[] ax;
+    delete[] b;
+    delete joystick;
+    delete JSBSim;
     if (jsbsimDataSocket) delete jsbsimDataSocket;
     if (jsbsimControlsSocket) delete jsbsimControlsSocket;
+    delete gearCmd;
+    delete sbCmd;
     if ( m_ui ) delete m_ui; m_ui = 0;
 }
 
 
 /////////////////////////////////////////////////////////////////////////////////
-
+// The main loop slot.  It includes a frame rate checker so that actual frame
+// rate can be checked against requested frame rate.  Note that the function that
+// sends data to JSBSim isn't in here because it's called by another timer with a
+// different rate.
+//
 void MainWindow::MainLoop()
 {
     if (count == 100) {
@@ -225,7 +191,9 @@ void MainWindow::MainLoop()
 
 
 /////////////////////////////////////////////////////////////////////////////////
-
+// Reads the joystick state and assigns the values to aircraft control inputs.
+// Presently the axis assignments and trim rates are hard-coded.
+//
 void MainWindow::get_joystick_inputs(void)
 {
     if (joystick->notWorking()) return;
@@ -251,7 +219,7 @@ void MainWindow::get_joystick_inputs(void)
         break;
     case 6:
         aileron = ax[0]; elevator = -ax[1]; rudder = -ax[2]; throttle = (ax[3]-1.0)/-2.0;
-         aileron_trim += ax[4] * 0.002; pitch_trim -= ax[5] * 0.002;
+        aileron_trim += ax[4] * dt/5.0; pitch_trim -= ax[5] * dt/5.0;
         break;
     default:
         aileron = ax[0]; elevator = -ax[1]; rudder = -ax[2]; throttle = (ax[3]-1.0)/-2.0;
@@ -263,7 +231,8 @@ void MainWindow::get_joystick_inputs(void)
 
 
 /////////////////////////////////////////////////////////////////////////////////
-
+// Updates the UI joystick display
+//
 void MainWindow::update_joystick_display(void)
 {
     if (joystick->notWorking()) return;
@@ -352,7 +321,8 @@ void MainWindow::update_joystick_display(void)
 
 
 /////////////////////////////////////////////////////////////////////////////////
-// Gets keyboard key events and sets associated variables
+// Gets keyboard key events and sets associated variables. These are later sent
+// to JSBSim over the socket.
 //
 void MainWindow::keyPressEvent(QKeyEvent* event)
 {
@@ -377,7 +347,8 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Reads a waiting datagram from JSBSim and sets variables.  The datagram is a
-// series of comma separated strings.
+// series of comma separated strings. Each string represents a value of type
+// double.
 //
 void MainWindow::getJSBSimData(void)
 {
@@ -460,7 +431,11 @@ void MainWindow::getJSBSimData(void)
 
 
 //////////////////////////////////////////////////////////////////////////////////
-// Sends commands via UDP datagram to JSBSim as comma-separated strings.
+// Sends commands via UDP datagram to JSBSim as comma-separated strings.  The first
+// one must be a strictly increasing time stamp, since JSBSim will throw away any
+// datagram it gets that is older than the previous datagram.  The rest of the
+// commands must match the properties specified in the JSBSim aircraft configuration
+// file.
 //
 void MainWindow::setJSBSimControls(void)
 {
@@ -511,7 +486,8 @@ void MainWindow::setJSBSimControls(void)
 
 
 ///////////////////////////////////////////////////////////////////////////////////
-
+// Updates the UI with data mostly obtained from JSBSim.
+//
 void MainWindow::UpdateDisplays()
 {
 
@@ -643,7 +619,8 @@ void MainWindow::UpdateDisplays()
 
 
 ///////////////////////////////////////////////////////////////////////////////////
-
+// A utility function to toggle a value between 1 and 0.
+//
 void MainWindow::toggle(double *number)
 {
     if (*number != 0.0) *number = 0.0;
@@ -653,7 +630,9 @@ void MainWindow::toggle(double *number)
 
 
 ///////////////////////////////////////////////////////////////////////////////////
-
+// A utility function to step through a defined number of steps between 1 and 0.
+// This is used for adjusting flap position by steps.
+//
 void MainWindow::step(double *number, int numsteps, int direction)
 {
     if (direction > 0){
@@ -671,7 +650,8 @@ void MainWindow::step(double *number, int numsteps, int direction)
 
 
 ////////////////////////////////////////////////////////////////////////////////////
-
+// This displays error messages associated with the JSBSim standalone process.
+//
 void MainWindow::processError(QProcess::ProcessError err) {
     switch(err)
     {
@@ -702,7 +682,8 @@ void MainWindow::processError(QProcess::ProcessError err) {
 
 
 ////////////////////////////////////////////////////////////////////////////////////
-
+// Starts JSBSim standalone as a separate process.
+//
 void MainWindow::StartJSBSim(void) {
 
     if (!JSBSim) return;
@@ -717,11 +698,12 @@ void MainWindow::StartJSBSim(void) {
 
 
 ////////////////////////////////////////////////////////////////////////////////////
-
+// Reads the ini file settings.
+//
 void MainWindow::readSettings(void) {
 
     settings = new QSettings(iniPath, QSettings::IniFormat);
-     m_ui->console->appendPlainText("Reading settings from: " + settings->fileName());
+    m_ui->console->appendPlainText("Reading settings from: " + settings->fileName());
 
     JSBSimExecutable = settings->value("cmdline/executable").toString();
     JSBSimArgs << settings->value("cmdline/root").toString();
@@ -746,13 +728,17 @@ void MainWindow::readSettings(void) {
     outputPort = settings->value("ports/output").toInt();
     telnetPort = settings->value("ports/telnet").toInt();
 
+    ui_rate = settings->value("rates/UI").toFloat();
+    output_rate = settings->value("rates/output").toFloat();
+
     delete settings;
 
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////////
-
+// Writes settings to the ini file.
+//
 void MainWindow::writeSettings(void) {
 
     settings = new QSettings(iniPath, QSettings::IniFormat);
@@ -766,8 +752,10 @@ void MainWindow::writeSettings(void) {
 
 
 ////////////////////////////////////////////////////////////////////////////////////
-
-void MainWindow::on_ConnectButton_clicked()   // connect/disconnect socket communication
+// Connect/disconnect socket communication with JSBSim. Presently the input and output
+// sockets are controlled together.
+//
+void MainWindow::on_ConnectButton_clicked()
 {
 
     if (!connected) {
@@ -796,13 +784,14 @@ void MainWindow::on_ConnectButton_clicked()   // connect/disconnect socket commu
         connected = false;
         m_ui->console->appendPlainText("Closed UDP input socket.");
         m_ui->console->appendPlainText("Closed UDP output socket.");
-        jsbsimTerminate = 0;
+
     }
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////////
-
+// These are UI slots that connect UI widgets to commands to JSBSim.
+//
 void MainWindow::on_GearUpButton_clicked()
 {
     gear_cmd = 0.0;   // command gear up
