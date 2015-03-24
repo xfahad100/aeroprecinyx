@@ -36,7 +36,7 @@ MainWindow::MainWindow( QWidget * parent ) :
     m_ui->setupUi( this );
 
     // Path to your QtJSBSim directory (edit this to match your setup)
-    installPath = "/home/dave/Desktop/QtJSBSim/";
+    installPath = "/home/dave/QtJSBSim/";
     iniPath = installPath + "qtjsbsim.ini";
 
     // Set up the UI frame rate monitoring timer
@@ -46,13 +46,14 @@ MainWindow::MainWindow( QWidget * parent ) :
     UItimer = new QTime();
     UItimer->start();
 
-    // Set up time stamp for the UDP datagrams
+    // Set up time stamp for the outgoing UDP datagrams
     timeStamp = new QTime();
     timeStamp->start();
 
     // Initialize variables
     aileron = elevator = rudder = throttle = 0.0;
     pitch_trim = -0.15;
+    pitch_trim_rate = 0.2;
     aileron_trim = rudder_trim = 0.0;
     pitch_trim_pos = aileron_trim_pos = rudder_trim_pos = 0.0;
     aileron_pos = elevator_pos = rudder_pos = throttle_pos = 0.0;
@@ -103,17 +104,20 @@ MainWindow::MainWindow( QWidget * parent ) :
     sbCmd->addButton(m_ui->SBDownButton);
     m_ui->SBDownButton->setChecked(true);
 
-    // Read settings from init file
-    readSettings();
 
     // Set up joystick
     joystick = new jsJoystick();
     jsInit();
     m_ui->label_joystick->setText(joystick->getName());
     axes = joystick->getNumAxes();
-    ax = new float[axes];
+    ax = new float[32];
     NumButtons = joystick->getNumButtons();
-    b = new int[NumButtons];
+    b = new int[32];
+    deadband = new float[3];
+    for (int i=0; i<32; i++) {
+        ax[i] = b[i] = 0.0;
+    }
+    deadband[0] = deadband[1] = deadband[2] = 0.0;
 
     if (joystick->notWorking()) {
         m_ui->console->appendPlainText("Joystick not found!");
@@ -122,6 +126,8 @@ MainWindow::MainWindow( QWidget * parent ) :
         m_ui->console->appendPlainText("Joystick buttons = " + QString::number(NumButtons));
     }
 
+    // Read settings from init file
+    readSettings();
 
     // Set up JSBSim
     JSBSim = new jsbsim();
@@ -156,6 +162,7 @@ MainWindow::~MainWindow()
     delete timer;
     delete[] ax;
     delete[] b;
+    delete[] deadband;
     delete joystick;
     delete JSBSim;
     if (jsbsimDataSocket) delete jsbsimDataSocket;
@@ -192,40 +199,22 @@ void MainWindow::MainLoop()
 
 /////////////////////////////////////////////////////////////////////////////////
 // Reads the joystick state and assigns the values to aircraft control inputs.
-// Presently the axis assignments and trim rates are hard-coded.
+// Presently, the axis assignments are hard-coded, and the max number of axes
+// supported is 32.  Pitch trim rate is a normalized value (0-1) per second, so
+// for example, 0.2 results in five seconds to go from 0 to 1.
 //
 void MainWindow::get_joystick_inputs(void)
 {
     if (joystick->notWorking()) return;
 
     joystick->read(&buttons, ax);
-    switch (axes) {
-    case 0: break;
-    case 1:
-        aileron = ax[0];
-        break;
-    case 2:
-        aileron = ax[0]; elevator = -ax[1];
-        break;
-    case 3:
-        aileron = ax[0]; elevator = -ax[1]; rudder = -ax[2];
-        break;
-    case 4:
-        aileron = ax[0]; elevator = -ax[1]; rudder = -ax[2]; throttle = (ax[3]-1.0)/-2.0;
-        break;
-    case 5:
-        aileron = ax[0]; elevator = -ax[1]; rudder = -ax[2]; throttle = (ax[3]-1.0)/-2.0;
-        pitch_trim = ax[4];
-        break;
-    case 6:
-        aileron = ax[0]; elevator = -ax[1]; rudder = -ax[2]; throttle = (ax[3]-1.0)/-2.0;
-        aileron_trim += ax[4] * dt/5.0; pitch_trim -= ax[5] * dt/5.0;
-        break;
-    default:
-        aileron = ax[0]; elevator = -ax[1]; rudder = -ax[2]; throttle = (ax[3]-1.0)/-2.0;
-        aileron_trim += ax[4] * dt/5.0; pitch_trim -= ax[5] * dt/5.0;
-        break;
-    }
+
+    aileron = ax[0];
+    elevator = -ax[1];
+    rudder = -ax[2];
+    throttle = (ax[3]-1.0)/-2.0;
+    aileron_trim += ax[4] * dt/5.0;
+    pitch_trim -= ax[5] * dt * pitch_trim_rate;
 
 }
 
@@ -251,67 +240,67 @@ void MainWindow::update_joystick_display(void)
         buttons = buttons >> 1;
     }
 
-    if (NumButtons > 0 && b[0]){
+    if (b[0]){
            m_ui->jsButton_0->setChecked(true);
     }else {
            m_ui->jsButton_0->setChecked(false);
     }
-    if (NumButtons > 1 && b[1]){
+    if (b[1]){
            m_ui->jsButton_1->setChecked(true);
      }else {
            m_ui->jsButton_1->setChecked(false);
     }
-    if (NumButtons > 2 && b[2]){
+    if (b[2]){
            m_ui->jsButton_2->setChecked(true);
      }else {
            m_ui->jsButton_2->setChecked(false);
     }
-    if (NumButtons > 3 && b[3]){
+    if (b[3]){
            m_ui->jsButton_3->setChecked(true);
      }else {
            m_ui->jsButton_3->setChecked(false);
     }
-    if (NumButtons > 4 && b[4]){
+    if (b[4]){
            m_ui->jsButton_4->setChecked(true);
      }else {
            m_ui->jsButton_4->setChecked(false);
     }
-    if (NumButtons > 5 && b[5]){
+    if (b[5]){
            m_ui->jsButton_5->setChecked(true);
      }else {
            m_ui->jsButton_5->setChecked(false);
     }
-    if (NumButtons > 6 && b[6]){
+    if (b[6]){
            m_ui->jsButton_6->setChecked(true);
      }else {
            m_ui->jsButton_6->setChecked(false);
     }
-    if (NumButtons > 7 && b[7]){
+    if (b[7]){
            m_ui->jsButton_7->setChecked(true);
      }else {
            m_ui->jsButton_7->setChecked(false);
     }
-    if (NumButtons > 8 && b[8]){
+    if (b[8]){
            m_ui->jsButton_8->setChecked(true);
      }else {
            m_ui->jsButton_8->setChecked(false);
     }
-    if (NumButtons > 9 && b[9]){
+    if (b[9]){
            m_ui->jsButton_9->setChecked(true);
      }else {
            m_ui->jsButton_9->setChecked(false);
     }
-    if (NumButtons > 10 && b[10]){
+    if (b[10]){
            m_ui->jsButton_10->setChecked(true);
      }else {
            m_ui->jsButton_10->setChecked(false);
     }
-    if (NumButtons > 11 && b[11]){
+    if (b[11]){
            m_ui->jsButton_11->setChecked(true);
      }else {
            m_ui->jsButton_11->setChecked(false);
     }
-    if (NumButtons > 12 && b[12]){
+    if (b[12]){
            m_ui->jsButton_12->setChecked(true);
      }else {
            m_ui->jsButton_12->setChecked(false);
@@ -731,6 +720,19 @@ void MainWindow::readSettings(void) {
     ui_rate = settings->value("rates/UI").toFloat();
     output_rate = settings->value("rates/output").toFloat();
 
+    pitch_trim = settings->value("aircraft/pitch-trim").toDouble();
+    pitch_trim_rate = settings->value("aircraft/pitch-trim-rate").toFloat();
+
+    deadband[0] = settings->value("joystick/axis-0-deadband").toFloat();
+    deadband[1] = settings->value("joystick/axis-1-deadband").toFloat();
+    deadband[2] = settings->value("joystick/axis-2-deadband").toFloat();
+
+    if (!joystick->notWorking()) {
+        if (axes>0) joystick->setDeadBand(0, deadband[0]);
+        if (axes>1) joystick->setDeadBand(1, deadband[1]);
+        if (axes>2) joystick->setDeadBand(2, deadband[2]);
+    }
+
     delete settings;
 
 }
@@ -824,7 +826,7 @@ void MainWindow::on_SBDownButton_clicked()
 
 void MainWindow::on_pushButton_clicked()
 {
-    // disable joystick, does nothing yet
+    joystick->setError();       // disable joystick
 }
 
 void MainWindow::on_pushButton_8_clicked()

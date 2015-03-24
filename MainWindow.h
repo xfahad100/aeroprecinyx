@@ -53,6 +53,7 @@ public:
     int NumButtons;        // the number of buttons on this joystick
     int buttons;           // contains all button values bitwise
     int* b;                // an array of button values
+    float* deadband;
     void get_joystick_inputs(void);
     void update_joystick_display(void);
 
@@ -69,6 +70,7 @@ public:
 
     double aileron, elevator, rudder, throttle;
     double pitch_trim, aileron_trim, rudder_trim;
+    float  pitch_trim_rate;
     double pitch_trim_pos, aileron_trim_pos, rudder_trim_pos;
     double aoa, beta, pitch, roll, yaw;
     double phi, theta, psi, P, Q, R;
