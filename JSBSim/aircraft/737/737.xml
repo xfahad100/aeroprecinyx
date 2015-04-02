@@ -869,7 +869,7 @@
     </aerodynamics>
 
  <!-- 50 properties output, + 1 for the time stamp -->
- <output name="localhost" type="SOCKET" port="5138" protocol="UDP" rate="10">
+ <output name="localhost" type="QTJSBSIM" port="5138"  rate="10">
    
   <property> velocities/vc-kts </property>
   <property> position/h-sl-ft </property>
@@ -932,7 +932,7 @@
  <!-- <input port="5137" /> -->
  
  <!-- 16 properties input, + 1 for the time stamp -->
- <input port="5139" type="UDPSOCKET" rate="20">
+ <input port="5139" type="QTJSBSIM" rate="20">
    
   <property> fcs/aileron-cmd-norm </property> 
   <property> fcs/elevator-cmd-norm </property> 
