@@ -3,6 +3,7 @@
 
 jsbsim::jsbsim( void ) {
 
+    setProcessChannelMode(QProcess::MergedChannels);
     connect (this, SIGNAL(readyReadStandardOutput()),
              this, SLOT(logOutput()));
 }

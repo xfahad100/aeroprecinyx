@@ -64,7 +64,9 @@ MainWindow::MainWindow( QWidget * parent ) :
     payload_cmd = 10000.0;
     wind_dir = wind_speed = deltaT = 0.0;
     Pt = Qbar = TAT = OAT = Re = g = dt = 0.0;
+    steering = pause = 0.0;
     numEngines = 0;
+    selected_engine = -1.0;
     flap_cmd = 0.0;
     gear_cmd = 1.0;
     jsbsimTerminate = 0.0;
@@ -88,6 +90,8 @@ MainWindow::MainWindow( QWidget * parent ) :
         power[i] = 0.0;
         torque[i] = 0.0;
         prop_angle[i] = 0.0;
+        starter[i] = 0.0;
+        cutoff[i] = 0.0;
     }
     hostAddress = QHostAddress::LocalHost;
     inputPort = 5138;
@@ -110,12 +114,15 @@ MainWindow::MainWindow( QWidget * parent ) :
     jsInit();
     m_ui->label_joystick->setText(joystick->getName());
     axes = joystick->getNumAxes();
-    ax = new float[32];
+    ax = new float[16];
     NumButtons = joystick->getNumButtons();
     b = new int[32];
     deadband = new float[3];
+    for (int i=0; i<16; i++) {
+       ax[i] = 0.0;
+    }
     for (int i=0; i<32; i++) {
-        ax[i] = b[i] = 0.0;
+       b[i] = 0.0;
     }
     deadband[0] = deadband[1] = deadband[2] = 0.0;
 
@@ -173,7 +180,7 @@ MainWindow::~MainWindow()
 }
 
 
-/////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // The main loop slot.  It includes a frame rate checker so that actual frame
 // rate can be checked against requested frame rate.  Note that the function that
 // sends data to JSBSim isn't in here because it's called by another timer with a
@@ -197,10 +204,10 @@ void MainWindow::MainLoop()
 
 
 
-/////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Reads the joystick state and assigns the values to aircraft control inputs.
 // Presently, the axis assignments are hard-coded, and the max number of axes
-// supported is 32.  Pitch trim rate is a normalized value (0-1) per second, so
+// supported is 16.  Pitch trim rate is a normalized value (0-1) per second, so
 // for example, 0.2 results in five seconds to go from 0 to 1.
 //
 void MainWindow::get_joystick_inputs(void)
@@ -219,7 +226,7 @@ void MainWindow::get_joystick_inputs(void)
 }
 
 
-/////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Updates the UI joystick display
 //
 void MainWindow::update_joystick_display(void)
@@ -309,7 +316,7 @@ void MainWindow::update_joystick_display(void)
 }
 
 
-/////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Gets keyboard key events and sets associated variables. These are later sent
 // to JSBSim over the socket.
 //
@@ -329,6 +336,48 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
         case Qt::Key_T:
            toggle( &jsbsimTerminate );    // terminate JSBSim
            break;
+        case Qt::Key_S:                   // engine starter(s)
+           if (selected_engine == -1) {
+           toggle( &starter[0] );
+           toggle( &starter[1] );
+           toggle( &starter[2] );
+           toggle( &starter[3] );
+           } else {
+               toggle( &starter[(int)selected_engine - 1] );
+           }
+           break;
+        case Qt::Key_Q:                   // engine fuel cutoff(s)
+           if (selected_engine == -1) {
+           toggle( &cutoff[0] );
+           toggle( &cutoff[1] );
+           toggle( &cutoff[2] );
+           toggle( &cutoff[3] );
+           } else {
+               toggle( &cutoff[(int)selected_engine - 1] );
+           }
+           break;
+        case Qt::Key_M:
+           toggle( &steering );           // (nose/tail) wheel steering
+           break;
+        case Qt::Key_P:
+           pauseJSBSim( toggle( &pause ) );  // pause/unpause JSBSim
+           break;
+        case Qt::Key_1:
+           selected_engine = 1.0;         // select engine one
+           break;
+        case Qt::Key_2:
+           selected_engine = 2.0;         // select engine two
+           break;
+        case Qt::Key_3:
+           selected_engine = 3.0;         // select engine three
+           break;
+        case Qt::Key_4:
+           selected_engine = 4.0;         // select engine four
+           break;
+        case Qt::Key_AsciiTilde:
+           selected_engine = -1.0;        // select all engines
+           break;
+
     }
 
 }
@@ -352,10 +401,10 @@ void MainWindow::getJSBSimData(void)
     QHostAddress sender;
     quint16 senderPort;
     jsbsimDataSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
-    if (datagram.at(0) == 0x3C) return;       // throw away JSBSim's header
+    if (datagram.at(0) == 0x3C) return;       // throw away JSBSim's header datagram
 
     datagram = datagram.trimmed();            // remove white space
-    datagram.append(',');                     // add a ',' at the end
+    //datagram.append(',');                     // add a ',' at the end
     tokens = datagram.split(',');             // tokenize
 
     for (int i=0; i<tokens.size(); i++) {
@@ -419,7 +468,7 @@ void MainWindow::getJSBSimData(void)
 
 
 
-//////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Sends commands via UDP datagram to JSBSim as comma-separated strings.  The first
 // one must be a strictly increasing time stamp, since JSBSim will throw away any
 // datagram it gets that is older than the previous datagram.  The rest of the
@@ -470,11 +519,13 @@ void MainWindow::setJSBSimControls(void)
 
    jsbsimControlsSocket->writeDatagram(datagram, hostAddress, outputPort);
 
+   if (jsbsimTerminate) jsbsimTerminate = 0.0;
+
 }
 
 
 
-///////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Updates the UI with data mostly obtained from JSBSim.
 //
 void MainWindow::UpdateDisplays()
@@ -607,38 +658,39 @@ void MainWindow::UpdateDisplays()
 
 
 
-///////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // A utility function to toggle a value between 1 and 0.
 //
-void MainWindow::toggle(double *number)
+double MainWindow::toggle(double *number)
 {
     if (*number != 0.0) *number = 0.0;
     else *number = 1.0;
+    return *number;
 }
 
 
 
-///////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // A utility function to step through a defined number of steps between 1 and 0.
 // This is used for adjusting flap position by steps.
 //
-void MainWindow::step(double *number, int numsteps, int direction)
+double MainWindow::step(double *number, int numsteps, int direction)
 {
     if (direction > 0){
-        if (*number > 0.99999) return;
+        if (*number > 0.99999) return *number;
         *number = (*number) + 1.0/numsteps;
         if (*number > 1.0) *number = 1.0;
     } else if (direction < 0){
-        if (*number < 0.00001) return;
+        if (*number < 0.00001) return *number;
         *number = (*number) - 1.0/numsteps;
         if (*number < 0.0) *number = 0.0;
     }
-
+    return *number;
 }
 
 
 
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // This displays error messages associated with the JSBSim standalone process.
 //
 void MainWindow::processError(QProcess::ProcessError err) {
@@ -670,7 +722,7 @@ void MainWindow::processError(QProcess::ProcessError err) {
 
 
 
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Starts JSBSim standalone as a separate process.
 //
 void MainWindow::StartJSBSim(void) {
@@ -686,7 +738,7 @@ void MainWindow::StartJSBSim(void) {
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Reads the ini file settings.
 //
 void MainWindow::readSettings(void) {
@@ -738,7 +790,7 @@ void MainWindow::readSettings(void) {
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // Writes settings to the ini file.
 //
 void MainWindow::writeSettings(void) {
@@ -753,9 +805,9 @@ void MainWindow::writeSettings(void) {
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////
-// Connect/disconnect socket communication with JSBSim. Presently the input and output
-// sockets are controlled together.
+////////////////////////////////////////////////////////////////////////////////
+// Connect/disconnect socket communication with JSBSim. Presently the input and
+// output sockets are controlled together.
 //
 void MainWindow::on_ConnectButton_clicked()
 {
@@ -765,14 +817,16 @@ void MainWindow::on_ConnectButton_clicked()
       jsbsimDataSocket = new QUdpSocket(this);
       jsbsimDataSocket->bind(inputPort, QUdpSocket::ShareAddress);
       if (jsbsimDataSocket) {
-          m_ui->console->appendPlainText("Established UDP input socket at port " + QString::number(inputPort));
+          m_ui->console->appendPlainText("Established UDP input socket at port " +
+                                         QString::number(inputPort));
       }
 
       // Set up UDP data output to JSBSim
       jsbsimControlsSocket = new QUdpSocket(this);
       jsbsimControlsSocket->bind(outputPort, QUdpSocket::ShareAddress);
       if (jsbsimControlsSocket) {
-          m_ui->console->appendPlainText("Established UDP output socket at port " + QString::number(outputPort));
+          m_ui->console->appendPlainText("Established UDP output socket at port " +
+                                         QString::number(outputPort));
       }
 
       if (jsbsimDataSocket && jsbsimControlsSocket) connected = true;
@@ -791,7 +845,7 @@ void MainWindow::on_ConnectButton_clicked()
 }
 
 
-///////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // These are UI slots that connect UI widgets to commands to JSBSim.
 //
 void MainWindow::on_GearUpButton_clicked()
@@ -855,3 +909,13 @@ void MainWindow::on_temperatureEdit_returnPressed()
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::pauseJSBSim(double command)
+{
+    if (command) {
+        // do nothing yet
+    } else {
+        // do nothing yet
+    }
+}

@@ -89,15 +89,18 @@ public:
     double power[10];
     double torque[10];
     double prop_angle[10];
+    double starter[10];
+    double cutoff[10];
     int numEngines;
+    double selected_engine;
     double gear_pos, gear_cmd, flap_pos, flap_cmd;
-    double speedbrakes_cmd;
+    double speedbrakes_cmd, steering;
     double aileron_pos, elevator_pos, rudder_pos, throttle_pos;
     double speedbrake_pos, simtime;
     double fuel_total, weight, empty_weight, payload, payload_cmd;
     double wind_dir, wind_speed, deltaT;
     double Pt, Qbar, TAT, OAT, Re, g, rho;
-    double jsbsim_dt, jsbsimTerminate;
+    double jsbsim_dt, jsbsimTerminate, pause;
     float  ui_rate, output_rate;
     int counter;
 
@@ -115,8 +118,8 @@ protected:
 
     void UpdateDisplays(void);
     void keyPressEvent( QKeyEvent * event);
-    void toggle( double* number);
-    void step( double* number, int numsteps, int direction);
+    double toggle( double* number);
+    double step( double* number, int numsteps, int direction);
 
 private slots:
 
@@ -154,6 +157,7 @@ private:
 
     void readSettings(void);
     void writeSettings(void);
+    void pauseJSBSim(double command);
 
 };
 
