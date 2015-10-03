@@ -1,5 +1,5 @@
-#include <jsbsim.h>
 #include <QDebug>
+#include "jsbsim.h"
 
 jsbsim::jsbsim( void ) {
 

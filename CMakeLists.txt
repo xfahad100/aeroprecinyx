@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 2.8.3)
+set( cmake_verbose_makefile TRUE)
+
+PROJECT(qtjsbsim)
+
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
+
+FIND_PACKAGE(Qt4 REQUIRED QtMain QtCore QtGui QtNetwork QtSvg)
+
+include( ${QT_USE_FILE} )
+if(WIN32)
+  set (QT_USE_QTMAIN TRUE)
+endif(WIN32)
+
+set(ENABLE_PLIB_JOYSTICK 1)
+find_package(PLIB REQUIRED js)
+
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}" 
+  "${CMAKE_SOURCE_DIR}/src"
+  "${PROJECT_BINARY_DIR}/src"
+  ${PLIB_INCLUDE_DIR}
+  )
+
+ADD_SUBDIRECTORY(src)
+

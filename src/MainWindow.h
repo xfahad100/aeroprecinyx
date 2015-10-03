@@ -21,7 +21,7 @@
 #include <QSettings>
 #include <QButtonGroup>
 #include <plib/js.h>
-#include <jsbsim.h>
+#include "jsbsim.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
