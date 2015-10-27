@@ -18,6 +18,8 @@ find_package(PLIB REQUIRED js)
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}" 
   "${CMAKE_SOURCE_DIR}/src"
   "${PROJECT_BINARY_DIR}/src"
+  "${CMAKE_SOURCE_DIR}/src/QFI"
+  "${CMAKE_SOURCE_DIR}/src/autopilot"
   ${PLIB_INCLUDE_DIR}
   )
 
