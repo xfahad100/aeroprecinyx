@@ -137,6 +137,10 @@ private slots:
     void on_temperatureEdit_returnPressed();
     void on_ConnectButton_clicked();
 
+    void on_StopJSBSimButton_clicked();
+
+    void on_QuitButton_clicked();
+
 private:
 
     Ui::MainWindow * m_ui;

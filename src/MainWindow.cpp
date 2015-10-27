@@ -36,8 +36,8 @@ MainWindow::MainWindow( QWidget * parent ) :
     m_ui->setupUi( this );
 
     // Path to your QtJSBSim directory (edit this to match your setup)
-    installPath = "/home/dave/QtJSBSim/";
-    iniPath = installPath + "qtjsbsim.ini";
+    installPath = "/home/dave/qtjsbsim/";
+    iniPath = installPath + "src/qtjsbsim.ini";
 
     // Set up the UI frame rate monitoring timer
     framerate = 0.0;
@@ -326,6 +326,8 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     switch (keycode) {
         case Qt::Key_G:
            toggle( &gear_cmd );           // toggle gear
+           if (gear_cmd) m_ui->GearDownButton->setChecked(true);
+           else m_ui->GearUpButton->setChecked(true);
            break;
         case Qt::Key_BracketRight:        // flaps down one step
            step( &flap_cmd, 9, 1 );
@@ -883,11 +885,6 @@ void MainWindow::on_pushButton_clicked()
     joystick->setError();       // disable joystick
 }
 
-void MainWindow::on_pushButton_8_clicked()
-{
-    toggle( &jsbsimTerminate );    // terminate JSBSim
-}
-
 void MainWindow::on_payloadWeightEdit_returnPressed()
 {
     payload_cmd = (m_ui->payloadWeightEdit->text()).toDouble();
@@ -918,4 +915,14 @@ void MainWindow::pauseJSBSim(double command)
     } else {
         // do nothing yet
     }
+}
+
+void MainWindow::on_StopJSBSimButton_clicked()
+{
+    toggle( &jsbsimTerminate );    // terminate JSBSim
+}
+
+void MainWindow::on_QuitButton_clicked()
+{
+    this->close();
 }

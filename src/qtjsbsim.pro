@@ -20,7 +20,7 @@ else:win32:CONFIG(debug, debug|release): DEFINES += _DEBUG
 
 #-------------------------------------------------
 
-INCLUDEPATH += ./ ./example /usr/local/include/JSBSim /usr/include/plib
+INCLUDEPATH += ./ ./QFI ./autopilot /usr/local/include/JSBSim /usr/include/plib
 
 #-------------------------------------------------
 
@@ -29,23 +29,27 @@ LIBS += -L/usr/lib -lplibjs -lplibul
 #-------------------------------------------------
 
 HEADERS += \
-    qfi_PFD.h \
-    LayoutSquare.h \
     MainWindow.h \
     WidgetPFD.h \
-    jsbsim.h
+    jsbsim.h \
+    QFI/LayoutSquare.h \
+    QFI/qfi_ADI.h \
+    QFI/qfi_PFD.h \
+    QFI/WidgetPFD.h \
+    autopilot/PID_v1.h
 
 SOURCES += \
-    qfi_PFD.cpp \
-    LayoutSquare.cpp \
     main.cpp \
     MainWindow.cpp \
-    WidgetPFD.cpp \
-    jsbsim.cpp
+    jsbsim.cpp \
+    QFI/LayoutSquare.cpp \
+    QFI/qfi_PFD.cpp \
+    QFI/WidgetPFD.cpp \
+    autopilot/PID_v1.cpp
 
 FORMS += \
     MainWindow.ui \
-    WidgetPFD.ui
+    QFI/WidgetPFD.ui
 
 RESOURCES += \
     qtjsbsim.qrc
