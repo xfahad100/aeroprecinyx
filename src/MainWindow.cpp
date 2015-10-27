@@ -880,10 +880,6 @@ void MainWindow::on_SBDownButton_clicked()
     speedbrakes_cmd = 0.0;      // retract speed brakes
 }
 
-void MainWindow::on_pushButton_clicked()
-{
-    joystick->setError();       // disable joystick
-}
 
 void MainWindow::on_payloadWeightEdit_returnPressed()
 {

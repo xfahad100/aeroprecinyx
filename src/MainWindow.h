@@ -129,16 +129,12 @@ private slots:
     void on_FlapsDownButton_clicked();
     void on_SBUpButton_clicked();
     void on_SBDownButton_clicked();
-    void on_pushButton_clicked();
-    void on_pushButton_8_clicked();
     void on_payloadWeightEdit_returnPressed();
     void on_windDirEdit_returnPressed();
     void on_windSpeedEdit_returnPressed();
     void on_temperatureEdit_returnPressed();
     void on_ConnectButton_clicked();
-
     void on_StopJSBSimButton_clicked();
-
     void on_QuitButton_clicked();
 
 private:
