@@ -2,16 +2,38 @@
 ENABLE_LANGUAGE(CXX)
 
 #Add qt-gui files
-FILE(GLOB qt-gui_srcs *.cpp)
-FILE(GLOB qt-gui_hdrs *.h)
+SET(SRC_OBJS
+     jsbsim.cpp
+     main.cpp
+     MainWindow.cpp
+     autopilot/PID_v1.cpp
+     QFI/LayoutSquare.cpp
+     QFI/qfi_PFD.cpp
+     QFI/WidgetPFD.cpp
+   )
+
+SET(SRC_HDRS
+     jsbsim.h
+     MainWindow.h
+     QFI/LayoutSquare.h
+     QFI/qfi_ADI.h
+     QFI/qfi_PFD.h
+     QFI/WidgetPFD.h
+   )
 
 # Generate QT Files
-FILE(GLOB Forms_UIS *.ui)
-FILE(GLOB RCC_FILES *.qrc)
+SET(GUI_FILES
+     MainWindow.ui
+     QFI/WidgetPFD.ui
+   )
 
-QT4_WRAP_UI(UI_SRC ${Forms_UIS})
-QT4_WRAP_CPP(MOC_SRC ${qt-gui_hdrs})
-QT4_ADD_RESOURCES(RCC_SRC ${RCC_FILES})
+SET(RCS_FILES
+     qtjsbsim.qrc
+   )
 
-ADD_EXECUTABLE( qtjsbsim ${qt-gui_srcs} ${MOC_SRC} ${UI_SRC} ${RCC_SRC} )
+QT4_WRAP_UI(UI_SRC ${GUI_FILES})
+QT4_WRAP_CPP(MOC_SRC ${SRC_HDRS})
+QT4_ADD_RESOURCES(RCC_SRC ${RCS_FILES})
+
+ADD_EXECUTABLE( qtjsbsim ${SRC_OBJS} ${MOC_SRC} ${UI_SRC} ${RCC_SRC} )
 TARGET_LINK_LIBRARIES( qtjsbsim ${QT_LIBRARIES} ${PLIB_LIBRARIES} )
