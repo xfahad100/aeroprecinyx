@@ -748,7 +748,7 @@ void MainWindow::readSettings(void) {
     m_ui->console->appendPlainText("Reading settings from: " + settings->fileName());
 
     JSBSimExecutable = settings->value("cmdline/executable").toString();
-    JSBSimArgs << settings->value("cmdline/root").toString();
+    JSBSimArgs << "--root=" + installPath + "/JSBSim";
     JSBSimArgs << settings->value("cmdline/realtime").toString();
     JSBSimArgs << settings->value("cmdline/aircraft").toString();
     JSBSimArgs << settings->value("cmdline/initfile").toString();
@@ -900,8 +900,6 @@ void MainWindow::on_temperatureEdit_returnPressed()
     deltaT = (m_ui->temperatureEdit->text()).toDouble();
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
 
 void MainWindow::pauseJSBSim(double command)
 {

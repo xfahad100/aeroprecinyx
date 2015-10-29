@@ -43,7 +43,7 @@ public:
     explicit MainWindow( QWidget * parent = 0 );
     ~MainWindow();
 
-    // Path to the QtJSBSim directory, and the ini file.
+    // Path to the qtjsbsim directory, and the ini file.
     QDir    installDir;
     QString getInstallPath(void);
     QString installPath;
