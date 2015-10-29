@@ -35,9 +35,8 @@ MainWindow::MainWindow( QWidget * parent ) :
 
     m_ui->setupUi( this );
 
-    // Path to your QtJSBSim directory (edit this to match your setup)
-    installPath = "/home/dave/qtjsbsim/";
-    iniPath = installPath + "src/qtjsbsim.ini";
+    installPath = getInstallPath();
+    iniPath = installPath + "/src/qtjsbsim.ini";
 
     // Set up the UI frame rate monitoring timer
     framerate = 0.0;
@@ -921,4 +920,29 @@ void MainWindow::on_StopJSBSimButton_clicked()
 void MainWindow::on_QuitButton_clicked()
 {
     this->close();
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+// Find the path name of your install directory.
+//
+//
+QString MainWindow::getInstallPath(void)
+{
+    // First, get the current working directory
+    installDir = QDir::current();
+
+    if (installDir.dirName() == "build-qtjsbsim-Desktop-Debug") {
+        // we are running within QtCreator
+        installDir.cdUp();
+        return installDir.absolutePath();
+    }
+
+    while (true){
+        if (installDir.dirName() == "qtjsbsim") return installDir.absolutePath();
+        if (!installDir.cdUp()) {
+            qWarning("Could not find the qtjsbsim directory!");
+            return installDir.absolutePath();
+        }
+    }
+
 }

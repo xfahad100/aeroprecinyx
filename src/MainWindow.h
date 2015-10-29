@@ -20,6 +20,7 @@
 #include <QtNetwork>
 #include <QSettings>
 #include <QButtonGroup>
+#include <QDir>
 #include <plib/js.h>
 #include "jsbsim.h"
 
@@ -43,6 +44,8 @@ public:
     ~MainWindow();
 
     // Path to the QtJSBSim directory, and the ini file.
+    QDir    installDir;
+    QString getInstallPath(void);
     QString installPath;
     QString iniPath;
 
