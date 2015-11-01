@@ -167,7 +167,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <widget class="QPushButton" name="pushButton_5">
+     <widget class="QPushButton" name="ViewerButton">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -177,7 +177,7 @@
        </rect>
       </property>
       <property name="text">
-       <string/>
+       <string>Viewer</string>
       </property>
      </widget>
      <widget class="QPushButton" name="pushButton_6">

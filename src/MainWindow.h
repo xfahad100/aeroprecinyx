@@ -21,6 +21,7 @@
 #include <QSettings>
 #include <QButtonGroup>
 #include <QDir>
+#include <QWebView>
 #include <plib/js.h>
 #include "jsbsim.h"
 
@@ -42,6 +43,7 @@ public:
 
     explicit MainWindow( QWidget * parent = 0 );
     ~MainWindow();
+    QWidget * Parent;
 
     // Path to the qtjsbsim directory, and the ini file.
     QDir    installDir;
@@ -67,6 +69,9 @@ public:
     QString JSBSimWorkingDir;
     QUdpSocket* jsbsimDataSocket;
     QUdpSocket* jsbsimControlsSocket;
+
+    // Cesium-powered viewer
+    QWebView * browser;
 
     void getJSBSimData(void);
 
@@ -139,6 +144,8 @@ private slots:
     void on_ConnectButton_clicked();
     void on_StopJSBSimButton_clicked();
     void on_QuitButton_clicked();
+
+    void on_ViewerButton_clicked();
 
 private:
 

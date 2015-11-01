@@ -34,6 +34,7 @@ MainWindow::MainWindow( QWidget * parent ) :
 {
 
     m_ui->setupUi( this );
+    browser = new QWebView(parent);
 
     installPath = getInstallPath();
     iniPath = installPath + "/src/qtjsbsim.ini";
@@ -175,6 +176,7 @@ MainWindow::~MainWindow()
     if (jsbsimControlsSocket) delete jsbsimControlsSocket;
     delete gearCmd;
     delete sbCmd;
+    delete browser;
     if ( m_ui ) delete m_ui; m_ui = 0;
 }
 
@@ -920,6 +922,18 @@ void MainWindow::on_QuitButton_clicked()
     this->close();
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Display the Cesium viewer window
+//
+void MainWindow::on_ViewerButton_clicked()
+{
+    browser->setWindowTitle("QtJSBSim Viewer (in development)");
+    browser->load(QUrl("http://localhost:8080/Apps/OTW/"));
+    browser->show();
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////
 // Find the path name of your install directory.
 //
@@ -944,3 +958,4 @@ QString MainWindow::getInstallPath(void)
     }
 
 }
+
