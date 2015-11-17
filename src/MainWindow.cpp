@@ -34,7 +34,7 @@ MainWindow::MainWindow( QWidget * parent ) :
 {
 
     m_ui->setupUi( this );
-    browser = new QWebView(parent);
+    Viewer = new viewer(parent);
 
     installPath = getInstallPath();
     iniPath = installPath + "/src/qtjsbsim.ini";
@@ -176,7 +176,7 @@ MainWindow::~MainWindow()
     if (jsbsimControlsSocket) delete jsbsimControlsSocket;
     delete gearCmd;
     delete sbCmd;
-    delete browser;
+    delete Viewer;
     if ( m_ui ) delete m_ui; m_ui = 0;
 }
 
@@ -199,7 +199,7 @@ void MainWindow::MainLoop()
     update_joystick_display();
     getJSBSimData();
     UpdateDisplays();
-
+    Viewer->updateData(latitude, longitude, altitude, pitch, roll, yaw);
     count++;
 }
 
@@ -928,9 +928,9 @@ void MainWindow::on_QuitButton_clicked()
 //
 void MainWindow::on_ViewerButton_clicked()
 {
-    browser->setWindowTitle("QtJSBSim Viewer (in development)");
-    browser->load(QUrl("http://localhost:8080/Apps/OTW/"));
-    browser->show();
+    Viewer->setWindowTitle("QtJSBSim Viewer (in development)");
+    Viewer->load(QUrl("http://localhost:8080/Apps/OTW/"));
+    Viewer->show();
 }
 
 

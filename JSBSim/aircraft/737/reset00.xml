@@ -3,16 +3,17 @@
   <!--
     This file sets up the aircraft to start off
     from the runway in preparation for takeoff.
+    Runway 25R at KLAX.
   -->
   <ubody unit="FT/SEC">    0.0  </ubody>
   <vbody unit="FT/SEC">    0.0  </vbody>
   <wbody unit="FT/SEC">    0.0  </wbody>
-  <latitude unit="DEG">   47.0  </latitude>
-  <longitude unit="DEG"> 122.0  </longitude>
+  <latitude unit="DEG">    33.9393333  </latitude>
+  <longitude unit="DEG"> -118.3833333  </longitude>
   <phi unit="DEG">         0.0  </phi>
   <theta unit="DEG">       0.0  </theta>
-  <psi unit="DEG">        90.0  </psi>
-  <altitude unit="FT">     0.0  </altitude>  
+  <psi unit="DEG">       263.0  </psi>
+  <elevation unit="FT">   94.0  </elevation>  
   <trim>                     1  </trim>
 
 </initialize>

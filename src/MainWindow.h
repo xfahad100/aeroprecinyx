@@ -21,7 +21,7 @@
 #include <QSettings>
 #include <QButtonGroup>
 #include <QDir>
-#include <QWebView>
+#include <viewer.h>
 #include <plib/js.h>
 #include "jsbsim.h"
 
@@ -71,7 +71,7 @@ public:
     QUdpSocket* jsbsimControlsSocket;
 
     // Cesium-powered viewer
-    QWebView * browser;
+    viewer * Viewer;
 
     void getJSBSimData(void);
 

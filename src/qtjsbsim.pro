@@ -36,7 +36,8 @@ HEADERS += \
     QFI/qfi_ADI.h \
     QFI/qfi_PFD.h \
     QFI/WidgetPFD.h \
-    autopilot/PID_v1.h
+    autopilot/PID_v1.h \
+    viewer.h
 
 SOURCES += \
     main.cpp \
@@ -45,11 +46,13 @@ SOURCES += \
     QFI/LayoutSquare.cpp \
     QFI/qfi_PFD.cpp \
     QFI/WidgetPFD.cpp \
-    autopilot/PID_v1.cpp
+    autopilot/PID_v1.cpp \
+    viewer.cpp
 
 FORMS += \
     MainWindow.ui \
-    QFI/WidgetPFD.ui
+    QFI/WidgetPFD.ui \
+    viewer.ui
 
 RESOURCES += \
     qtjsbsim.qrc
