@@ -6,6 +6,7 @@ SET(SRC_OBJS
      jsbsim.cpp
      main.cpp
      MainWindow.cpp
+     viewer.cpp
      autopilot/PID_v1.cpp
      QFI/LayoutSquare.cpp
      QFI/qfi_PFD.cpp
@@ -15,6 +16,7 @@ SET(SRC_OBJS
 SET(SRC_HDRS
      jsbsim.h
      MainWindow.h
+     viewer.h
      QFI/LayoutSquare.h
      QFI/qfi_ADI.h
      QFI/qfi_PFD.h
@@ -24,6 +26,7 @@ SET(SRC_HDRS
 # Generate QT Files
 SET(GUI_FILES
      MainWindow.ui
+     viewer.ui
      QFI/WidgetPFD.ui
    )
 
