@@ -30,7 +30,6 @@ LIBS += -L/usr/lib -lplibjs -lplibul
 
 HEADERS += \
     MainWindow.h \
-    WidgetPFD.h \
     jsbsim.h \
     QFI/LayoutSquare.h \
     QFI/qfi_ADI.h \
