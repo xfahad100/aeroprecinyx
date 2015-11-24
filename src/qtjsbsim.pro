@@ -4,9 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core gui svg network webkitwidgets
+message("Qt Version "$$QT_VERSION)
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT  += widgets svg network webkitwidgets
 
 TARGET = qtjsbsim
 TEMPLATE = app

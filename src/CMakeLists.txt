@@ -1,7 +1,6 @@
 
 ENABLE_LANGUAGE(CXX)
 
-#Add qt-gui files
 SET(SRC_OBJS
      jsbsim.cpp
      main.cpp
@@ -23,7 +22,6 @@ SET(SRC_HDRS
      QFI/WidgetPFD.h
    )
 
-# Generate QT Files
 SET(GUI_FILES
      MainWindow.ui
      viewer.ui
@@ -34,9 +32,9 @@ SET(RCS_FILES
      qtjsbsim.qrc
    )
 
-QT4_WRAP_UI(UI_SRC ${GUI_FILES})
-QT4_WRAP_CPP(MOC_SRC ${SRC_HDRS})
-QT4_ADD_RESOURCES(RCC_SRC ${RCS_FILES})
+QT5_WRAP_UI(UI_SRC ${GUI_FILES})
+QT5_WRAP_CPP(MOC_SRC ${SRC_HDRS})
+QT5_ADD_RESOURCES(RCC_SRC ${RCS_FILES})
 
 ADD_EXECUTABLE( qtjsbsim ${SRC_OBJS} ${MOC_SRC} ${UI_SRC} ${RCC_SRC} )
 TARGET_LINK_LIBRARIES( qtjsbsim ${QT_LIBRARIES} ${PLIB_LIBRARIES} )
