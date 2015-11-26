@@ -1,7 +1,6 @@
 
 ENABLE_LANGUAGE(CXX)
 
-#Add qt-gui files
 SET(SRC_OBJS
      jsbsim.cpp
      main.cpp
@@ -23,7 +22,6 @@ SET(SRC_HDRS
      QFI/WidgetPFD.h
    )
 
-# Generate QT Files
 SET(GUI_FILES
      MainWindow.ui
      viewer.ui
