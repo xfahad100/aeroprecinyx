@@ -5,9 +5,8 @@ PROJECT(qtjsbsim)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 
-FIND_PACKAGE(Qt4 REQUIRED QtMain QtCore QtGui QtNetwork QtSvg QtWebKitWidgets)
+FIND_PACKAGE(Qt5 COMPONENTS Core Gui Network Svg WebKit WebKitWidgets)
 
-include( ${QT_USE_FILE} )
 if(WIN32)
   set (QT_USE_QTMAIN TRUE)
 endif(WIN32)
