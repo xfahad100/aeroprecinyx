@@ -929,7 +929,7 @@ void MainWindow::on_QuitButton_clicked()
 void MainWindow::on_ViewerButton_clicked()
 {
     Viewer->setWindowTitle("QtJSBSim Viewer (in development)");
-    Viewer->load(QUrl("http://localhost:8080/Apps/OTW/"));
+    Viewer->load(QUrl("http://qtjsbsim-dculp.rhcloud.com/"));
     Viewer->show();
 }
 
