@@ -82,7 +82,7 @@ public:
 
 protected:
 
-    void resizeEvent( QResizeEvent * event ) {};
+    void resizeEvent( QResizeEvent * event ) { if( event ) return; };
 
 private:
 

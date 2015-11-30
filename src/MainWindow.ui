@@ -139,6 +139,9 @@
       </property>
      </widget>
      <widget class="QPushButton" name="StopJSBSimButton">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -168,6 +171,9 @@
       <enum>QFrame::Raised</enum>
      </property>
      <widget class="QPushButton" name="ViewerButton">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -220,6 +226,9 @@
       </property>
      </widget>
      <widget class="QPushButton" name="ConnectButton">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>10</x>

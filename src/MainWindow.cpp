@@ -109,6 +109,9 @@ MainWindow::MainWindow( QWidget * parent ) :
     sbCmd->addButton(m_ui->SBUpButton);
     sbCmd->addButton(m_ui->SBDownButton);
     m_ui->SBDownButton->setChecked(true);
+    m_ui->StopJSBSimButton->setEnabled(false);
+    m_ui->ConnectButton->setEnabled(false);
+    m_ui->ViewerButton->setEnabled(false);
 
 
     // Set up joystick
@@ -738,7 +741,8 @@ void MainWindow::StartJSBSim(void) {
 
           JSBSim->start(JSBSimExecutable, JSBSimArgs);
           m_ui->console->appendPlainText("Starting JSBSim");
-
+          m_ui->ConnectButton->setEnabled(true);
+          m_ui->ViewerButton->setEnabled(true);
     }
 }
 
@@ -839,6 +843,7 @@ void MainWindow::on_ConnectButton_clicked()
       }
 
       if (jsbsimDataSocket && jsbsimControlsSocket) connected = true;
+      m_ui->StopJSBSimButton->setEnabled(true);
 
     } else {
 
@@ -849,7 +854,7 @@ void MainWindow::on_ConnectButton_clicked()
         connected = false;
         m_ui->console->appendPlainText("Closed UDP input socket.");
         m_ui->console->appendPlainText("Closed UDP output socket.");
-
+        m_ui->StopJSBSimButton->setEnabled(false);
     }
 }
 
@@ -920,7 +925,9 @@ void MainWindow::pauseJSBSim(double command)
 
 void MainWindow::on_StopJSBSimButton_clicked()
 {
-    toggle( &jsbsimTerminate );    // terminate JSBSim
+    toggle( &jsbsimTerminate );              // terminate JSBSim
+    m_ui->ConnectButton->setEnabled(false);
+    m_ui->StopJSBSimButton->setEnabled(false);
 }
 
 void MainWindow::on_QuitButton_clicked()
