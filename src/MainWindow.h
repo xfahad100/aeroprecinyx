@@ -72,6 +72,8 @@ public:
 
     // Cesium-powered viewer
     viewer * Viewer;
+    QUrl localURL, remoteURL;
+    bool useLocal;
 
     void getJSBSimData(void);
 

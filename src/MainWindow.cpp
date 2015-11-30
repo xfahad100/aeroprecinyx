@@ -97,6 +97,8 @@ MainWindow::MainWindow( QWidget * parent ) :
     inputPort = 5138;
     outputPort = 5139;
     telnetPort = 5137;
+    localURL = remoteURL = QUrl("");
+    useLocal = false;
 
     // Group some radio buttons
     gearCmd = new QButtonGroup(m_ui->ControlsTab);
@@ -788,6 +790,10 @@ void MainWindow::readSettings(void) {
         if (axes>2) joystick->setDeadBand(2, deadband[2]);
     }
 
+    localURL  = QUrl(settings->value("viewer/localURL").toString());
+    remoteURL = QUrl(settings->value("viewer/remoteURL").toString());
+    useLocal  = settings->value("viewer/use-local").toBool();
+
     delete settings;
 
 }
@@ -928,8 +934,12 @@ void MainWindow::on_QuitButton_clicked()
 //
 void MainWindow::on_ViewerButton_clicked()
 {
-    Viewer->setWindowTitle("QtJSBSim Viewer (in development)");
-    Viewer->load(QUrl("http://qtjsbsim-dculp.rhcloud.com/"));
+    Viewer->setWindowTitle("Cesium Viewer");
+    if (useLocal) {
+         Viewer->load(localURL);
+    } else {
+         Viewer->load(remoteURL);
+    }
     Viewer->show();
 }
 
