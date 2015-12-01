@@ -1,28 +1,31 @@
 #include "viewer.h"
 #include "ui_viewer.h"
 
-viewer::viewer(QWidget *parent) :
+Viewer::Viewer(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::viewer)
+    ui(new Ui::Viewer)
 {
     ui->setupUi(this);
+    ui->CloseButton->setEnabled(true);
     Aircraft = new aircraft(this);
     frame = ui->webView->page()->mainFrame();
-    connect(frame, &QWebFrame::javaScriptWindowObjectCleared, this, &viewer::shareAircraftObject);
+
+    // can't share the C++ object until the javascript environment is ready
+    connect(frame, &QWebFrame::javaScriptWindowObjectCleared, this, &Viewer::shareAircraftObject);
 }
 
-viewer::~viewer()
+Viewer::~Viewer()
 {
     delete ui;
     delete Aircraft;
 }
 
-void viewer::load(QUrl url)
+void Viewer::load(QUrl url)
 {
     ui->webView->load(url);
 }
 
-void viewer::updateData(double lat, double lon, double alt,
+void Viewer::updateData(double lat, double lon, double alt,
                         double pitch, double roll, double yaw)
 {
     Aircraft->setLat(lat);
@@ -33,7 +36,12 @@ void viewer::updateData(double lat, double lon, double alt,
     Aircraft->setHdgTrue(yaw);
 }
 
-void viewer::shareAircraftObject()
+void Viewer::shareAircraftObject()
 {
     frame->addToJavaScriptWindowObject("aircraft", Aircraft);
+}
+
+void Viewer::on_CloseButton_clicked()
+{
+    this->close();
 }

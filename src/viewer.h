@@ -4,7 +4,6 @@
 #include <QDialog>
 #include <QWebFrame>
 
-
 // The aircraft class contains the data that is made available to the javascript
 // environment in the QWebView object.  This is used to update the camera position.
 class aircraft : public QObject
@@ -34,17 +33,18 @@ private:
 };
 
 
+
 namespace Ui {
-class viewer;
+class Viewer;
 }
 
-class viewer : public QDialog
+class Viewer : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit viewer(QWidget *parent = 0);
-    ~viewer();
+    explicit Viewer(QWidget *parent = 0);
+    ~Viewer();
     QWebFrame* frame;
     void load(QUrl url);
     void shareAircraftObject();
@@ -52,9 +52,11 @@ public:
                     double pitch, double roll, double yaw);
     aircraft* Aircraft;
 
-private:
-    Ui::viewer *ui;
+private slots:
+    void on_CloseButton_clicked();
 
+private:
+    Ui::Viewer *ui;
 };
 
 #endif // VIEWER_H

@@ -71,7 +71,7 @@ public:
     QUdpSocket* jsbsimControlsSocket;
 
     // Cesium-powered viewer
-    viewer * Viewer;
+    Viewer* viewer;
     QUrl localURL, remoteURL;
     bool useLocal;
 
