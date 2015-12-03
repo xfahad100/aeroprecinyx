@@ -182,6 +182,8 @@ MainWindow::~MainWindow()
     delete gearCmd;
     delete sbCmd;
     delete viewer;
+    delete AircraftConfig;
+    delete InitFile;
     if ( m_ui ) delete m_ui; m_ui = 0;
 }
 
@@ -740,9 +742,25 @@ void MainWindow::StartJSBSim(void) {
     if (JSBSim->state() != (QProcess::Running)) {
 
           JSBSim->start(JSBSimExecutable, JSBSimArgs);
+
           m_ui->console->appendPlainText("Starting JSBSim");
           m_ui->ConnectButton->setEnabled(true);
           m_ui->ViewerButton->setEnabled(true);
+
+          QString AircraftDir = installPath + "/JSBSim/aircraft/";
+
+          AircraftConfig = new QFile(AircraftDir + "737/737.xml");
+          if(AircraftConfig->open(QIODevice::ReadWrite | QIODevice::Text)){
+              m_ui->AircraftEditor->setPlainText(AircraftConfig->readAll());
+              AircraftConfig->close();
+          }
+
+          InitFile = new QFile(AircraftDir + "737/reset00.xml");
+          if(InitFile->open(QIODevice::ReadWrite | QIODevice::Text)){
+              m_ui->InitFileEditor->setPlainText(InitFile->readAll());
+              InitFile->close();
+          }
+
     }
 }
 

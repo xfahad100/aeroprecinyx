@@ -69,6 +69,8 @@ public:
     QString JSBSimWorkingDir;
     QUdpSocket* jsbsimDataSocket;
     QUdpSocket* jsbsimControlsSocket;
+    QFile* AircraftConfig;
+    QFile* InitFile;
 
     // Cesium-powered viewer
     Viewer* viewer;
