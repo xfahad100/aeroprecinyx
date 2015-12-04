@@ -20,6 +20,8 @@ var terrainSource = new Cesium.CesiumTerrainProvider({
 });
 viewer.terrainProvider = terrainSource; 
 
+var displayLabel = document.getElementById('displayLabel');
+
 var FT2M = 0.3048;
 var DEG2RAD = 0.017453293;
 
@@ -52,8 +54,9 @@ function updateCamera() {
          heading : (aircraft.hdg_true() * DEG2RAD),
          pitch: ((aircraft.pitch() + look_down_angle) * DEG2RAD),
          roll : (aircraft.roll() * DEG2RAD)
-})}
+})
+    displayLabel.textContent = (aircraft.alt() * FT2M);
+}
 
 // update camera 20 times per second
 var timer = setInterval(updateCamera, 50);
-
