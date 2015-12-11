@@ -868,7 +868,7 @@
         </axis>
     </aerodynamics>
 
- <!-- 50 properties output, + 1 for the time stamp -->
+ <!-- 52 properties output, + 1 for the time stamp -->
  <output name="localhost" type="QTJSBSIM" port="5138"  rate="10">
    
   <property> velocities/vc-kts </property>
@@ -925,13 +925,16 @@
   <property> forces/load-factor </property>
   <property> atmosphere/rho-slugs_ft3 </property>
   <property> simulation/dt </property>
+
+  <property> position/geod-alt-ft </property>
+  <property> position/radius-to-vehicle-ft </property>
   
  </output>
 
  <!-- this is the telnet interface -->
  <!-- <input port="5137" /> -->
  
- <!-- 16 properties input, + 1 for the time stamp -->
+ <!-- 17 properties input, + 1 for the time stamp -->
  <input port="5139" type="QTJSBSIM" rate="20">
    
   <property> fcs/aileron-cmd-norm </property> 
@@ -950,6 +953,7 @@
   <property> atmosphere/wind-mag-fps </property>
   <property> atmosphere/delta-T </property>
   <property> inertia/pointmass-weight-lbs[0] </property>
+  <property> position/terrain-elevation-asl-ft </property>
   <property> simulation/terminate </property>
   
  </input>  

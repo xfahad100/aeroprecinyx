@@ -35,6 +35,7 @@ MainWindow::MainWindow( QWidget * parent ) :
 
     m_ui->setupUi( this );
     viewer = new Viewer(parent);
+    debug = new debugTable(m_ui->tab_15);
 
     installPath = getInstallPath();
     iniPath = installPath + "/src/qtjsbsim.ini";
@@ -59,6 +60,8 @@ MainWindow::MainWindow( QWidget * parent ) :
     aileron_pos = elevator_pos = rudder_pos = throttle_pos = 0.0;
     aoa = beta = pitch = roll = yaw = 0.0;
     altitude = latitude = longitude = 0.0;
+    GeoAlt = ECRadius = 0.0;
+    altTerrain = 95.248;  // temporary hack *******************************
     climb_rate = airspeed = mach = 0.0;
     fuel_total = weight = empty_weight = payload = 0.0;
     payload_cmd = 10000.0;
@@ -73,6 +76,8 @@ MainWindow::MainWindow( QWidget * parent ) :
     jsbsimDataSocket = NULL;
     jsbsimControlsSocket = NULL;
     JSBSim = NULL;
+    firstTime = true;
+    rEllipse = 0.0;
     connected = false;
     counter = 0;
     ui_rate = 100.0;
@@ -184,6 +189,7 @@ MainWindow::~MainWindow()
     delete viewer;
     delete AircraftConfig;
     delete InitFile;
+    delete debug;
     if ( m_ui ) delete m_ui; m_ui = 0;
 }
 
@@ -206,6 +212,8 @@ void MainWindow::MainLoop()
     update_joystick_display();
     getJSBSimData();
     UpdateDisplays();
+    doDebugCalculations();
+    debug->update();
     viewer->updateData(latitude, longitude, altitude, pitch, roll, yaw);
     count++;
 }
@@ -472,7 +480,14 @@ void MainWindow::getJSBSimData(void)
     g = data.at(48) * -1.0;
     rho = data.at(49);
     jsbsim_dt = data.at(50);
+    GeoAlt = data.at(51);
+    ECRadius = data.at(52);
 
+    // now that we have our first data from JSBSim
+    if( firstTime ) {
+        setDebugWatch();
+        firstTime = false;
+    }
 
 }
 
@@ -523,6 +538,8 @@ void MainWindow::setJSBSimControls(void)
    datagram.append(QString::number(deltaT*1.8, 'f', 5));    // Celsius to Rankine
    datagram.append(',');
    datagram.append(QString::number(payload_cmd, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(altTerrain, 'f', 5));
    datagram.append(',');
    datagram.append(QString::number(jsbsimTerminate, 'f', 0));
    datagram.append(',');
@@ -582,11 +599,12 @@ void MainWindow::UpdateDisplays()
   // Send data to tab 3 (Position)
   m_ui->dataLabel_25->setText(QString::number(altitude, 'f', 2));
   m_ui->dataLabel_26->setText(QString::number(altAGL, 'f', 2));
-  m_ui->dataLabel_27->setText(QString::number(latitude, 'f', 2));
-  m_ui->dataLabel_28->setText(QString::number(longitude, 'f', 2));
-  m_ui->dataLabel_29->setText(QString::number(GeoLat, 'f', 2));
+  m_ui->dataLabel_27->setText(QString::number(latitude, 'f', 5));
+  m_ui->dataLabel_28->setText(QString::number(longitude, 'f', 5));
+  m_ui->dataLabel_29->setText(QString::number(GeoLat, 'f', 5));
   m_ui->dataLabel_30->setText(QString::number(GeoAlt, 'f', 4));
-               // 31-36
+  m_ui->dataLabel_31->setText(QString::number(ECRadius, 'f', 8));
+               // 32-36
 
   // Send data to tab 4 (Propulsion)
   m_ui->dataLabel_37->setText(QString::number(thrust[0], 'f', 0));
@@ -946,6 +964,7 @@ void MainWindow::on_StopJSBSimButton_clicked()
     toggle( &jsbsimTerminate );              // terminate JSBSim
     m_ui->ConnectButton->setEnabled(false);
     m_ui->StopJSBSimButton->setEnabled(false);
+    m_ui->StartJSBSimButton->setEnabled(true);
 }
 
 void MainWindow::on_QuitButton_clicked()
@@ -994,3 +1013,34 @@ QString MainWindow::getInstallPath(void)
 
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////
+// This function is called once after the first data from JSBSim arrives.  This
+// is a good place to add a variable to watch in the debug table widget.  Syntax
+// to add an item is:
+//                      debug->addItem( "myvariable", &variable );
+//
+// The variable should be of type double and have global scope.
+//
+void MainWindow::setDebugWatch(void)
+{
+  debug->addItem( "ellipsoid radius (ft)", &rEllipse );
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// This function is called by the main loop, and is a good place to do calc-
+// ulations for variables that aren't otherwise updated.
+//
+void MainWindow::doDebugCalculations(void)
+{
+   // checking the expected ellipsoid radius for this geocentric latitude
+   double DEG2RAD = 3.141592654 / 180.0;
+   double M2FT = 3.28083989501312;
+   double cosPsi = cos(latitude * DEG2RAD );
+   double sinPsi = sin(latitude * DEG2RAD );
+   double a2 = 4.068063159e13;
+   double b2 = 4.040829998e13;
+   rEllipse = sqrt( (a2 * cosPsi * cosPsi) + (b2 * sinPsi * sinPsi) ) * M2FT;
+
+}

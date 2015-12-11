@@ -22,6 +22,7 @@
 #include <QButtonGroup>
 #include <QDir>
 #include <viewer.h>
+#include <debugtable.h>
 #include <plib/js.h>
 #include "jsbsim.h"
 
@@ -86,7 +87,8 @@ public:
     double pitch_trim_pos, aileron_trim_pos, rudder_trim_pos;
     double aoa, beta, pitch, roll, yaw;
     double phi, theta, psi, P, Q, R;
-    double altitude, latitude, longitude, GeoLat, GeoAlt, altAGL;
+    double altitude, latitude, longitude, GeoLat;
+    double GeoAlt, altAGL, altTerrain, ECRadius;
     double airspeed, vtrue, gs, climb_rate, mach;
     double vN, vE, vD, vU, vV, vW;
     double thrust[10];
@@ -115,6 +117,8 @@ public:
     double jsbsim_dt, jsbsimTerminate, pause;
     float  ui_rate, output_rate;
     int counter;
+    bool firstTime;
+    double rEllipse;
 
     quint16 outputPort, inputPort, telnetPort;
     QHostAddress hostAddress;
@@ -168,10 +172,13 @@ private:
     QSettings* settings;
     QButtonGroup* gearCmd;
     QButtonGroup* sbCmd;
+    debugTable* debug;
 
     void readSettings(void);
     void writeSettings(void);
     void pauseJSBSim(double command);
+    void setDebugWatch(void);
+    void doDebugCalculations(void);
 
 };
 

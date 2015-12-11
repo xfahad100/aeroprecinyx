@@ -50,7 +50,7 @@ viewer.camera.setView({
 // set the camera using values from JSBSim via QtJSBSim
 function updateCamera() {
      viewer.camera.setView({
-         position : Cesium.Cartesian3.fromDegrees(aircraft.lon(), aircraft.lat(), (aircraft.alt() * FT2M)),
+         positionCartographic : new Cesium.Cartographic(aircraft.lon() * DEG2RAD, aircraft.lat() * DEG2RAD, (aircraft.alt() * FT2M)),
          heading : (aircraft.hdg_true() * DEG2RAD),
          pitch: ((aircraft.pitch() + look_down_angle) * DEG2RAD),
          roll : (aircraft.roll() * DEG2RAD)
