@@ -88,7 +88,7 @@ public:
     double aoa, beta, pitch, roll, yaw;
     double phi, theta, psi, P, Q, R;
     double altitude, latitude, longitude, GeoLat;
-    double GeoAlt, altAGL, altTerrain, ECRadius;
+    double GeoAlt, altAGL, altTerrain, ECRadius, CGRadius;
     double airspeed, vtrue, gs, climb_rate, mach;
     double vN, vE, vD, vU, vV, vW;
     double thrust[10];

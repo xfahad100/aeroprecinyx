@@ -60,7 +60,7 @@ MainWindow::MainWindow( QWidget * parent ) :
     aileron_pos = elevator_pos = rudder_pos = throttle_pos = 0.0;
     aoa = beta = pitch = roll = yaw = 0.0;
     altitude = latitude = longitude = 0.0;
-    GeoAlt = ECRadius = 0.0;
+    GeoAlt = ECRadius = CGRadius = 0.0;
     altTerrain = 95.248;  // temporary hack *******************************
     climb_rate = airspeed = mach = 0.0;
     fuel_total = weight = empty_weight = payload = 0.0;
@@ -1025,6 +1025,7 @@ QString MainWindow::getInstallPath(void)
 void MainWindow::setDebugWatch(void)
 {
   debug->addItem( "ellipsoid radius (ft)", &rEllipse );
+  debug->addItem( "radius to CG (ft)", &CGRadius);
 }
 
 
@@ -1043,4 +1044,5 @@ void MainWindow::doDebugCalculations(void)
    double b2 = 4.040829998e13;
    rEllipse = sqrt( (a2 * cosPsi * cosPsi) + (b2 * sinPsi * sinPsi) ) * M2FT;
 
+   CGRadius = rEllipse + altTerrain + 3.62; // 3.62 for 737 model sitting height
 }
