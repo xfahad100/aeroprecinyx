@@ -1038,11 +1038,10 @@ void MainWindow::doDebugCalculations(void)
    // checking the expected ellipsoid radius for this geocentric latitude
    double DEG2RAD = 3.141592654 / 180.0;
    double M2FT = 3.28083989501312;
-   double cosPsi = cos(latitude * DEG2RAD );
-   double sinPsi = sin(latitude * DEG2RAD );
-   double a2 = 4.068063159e13;
-   double b2 = 4.040829998e13;
-   rEllipse = sqrt( (a2 * cosPsi * cosPsi) + (b2 * sinPsi * sinPsi) ) * M2FT;
+   double b = 6356752.3142 * M2FT;
+   double e2 = 0.00669437999014;
+   double clat = cos(latitude * DEG2RAD);
+   rEllipse = b / sqrt( 1 - e2 * clat * clat );
 
    CGRadius = rEllipse + altTerrain + 3.62; // 3.62 for 737 model sitting height
 }
