@@ -57,6 +57,7 @@ FORMS += \
     debugtable.ui
 
 RESOURCES += \
-    qtjsbsim.qrc
+    qtjsbsim.qrc \
+    icons.qrc
 
 OTHER_FILES +=

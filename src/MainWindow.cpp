@@ -59,10 +59,12 @@ MainWindow::MainWindow( QWidget * parent ) :
     pitch_trim_pos = aileron_trim_pos = rudder_trim_pos = 0.0;
     aileron_pos = elevator_pos = rudder_pos = throttle_pos = 0.0;
     aoa = beta = pitch = roll = yaw = 0.0;
-    altitude = latitude = longitude = 0.0;
-    GeoAlt = ECRadius = CGRadius = 0.0;
+    phi = theta = psi = P = Q = R = 0.0;
+    altitude = latitude = longitude = GeoLat = 0.0;
+    GeoAlt = altAGL = altTerrain = ECRadius = CGRadius = 0.0;
     altTerrain = 95.248;  // temporary hack *******************************
-    climb_rate = airspeed = mach = 0.0;
+    climb_rate = airspeed = mach = vtrue = gs = 0.0;
+    vN = vE = vD = vU = vV = vW = 0.0;
     fuel_total = weight = empty_weight = payload = 0.0;
     payload_cmd = 10000.0;
     wind_dir = wind_speed = deltaT = 0.0;
@@ -70,9 +72,14 @@ MainWindow::MainWindow( QWidget * parent ) :
     steering = pause = 0.0;
     numEngines = 0;
     selected_engine = -1.0;
-    flap_cmd = 0.0;
-    gear_cmd = 1.0;
-    jsbsimTerminate = 0.0;
+    flap_pos = flap_cmd = speedbrakes_cmd = steering = 0.0;
+    gear_pos = gear_cmd = 1.0;
+    speedbrake_pos = simtime = fuel_total = payload = 0.0;
+    weight = empty_weight = 1.0;
+    payload_cmd = 0;
+    wind_dir = wind_speed = deltaT = 0.0;
+    Pt = Qbar = TAT = OAT = Re = g = rho = 0.0;
+    jsbsimTerminate = jsbsim_dt = 0.0;
     jsbsimDataSocket = NULL;
     jsbsimControlsSocket = NULL;
     JSBSim = NULL;
@@ -114,9 +121,6 @@ MainWindow::MainWindow( QWidget * parent ) :
     sbCmd->addButton(m_ui->SBUpButton);
     sbCmd->addButton(m_ui->SBDownButton);
     m_ui->SBDownButton->setChecked(true);
-    m_ui->StopJSBSimButton->setEnabled(false);
-    m_ui->ConnectButton->setEnabled(false);
-    m_ui->ViewerButton->setEnabled(false);
 
 
     // Set up joystick
@@ -762,8 +766,7 @@ void MainWindow::StartJSBSim(void) {
           JSBSim->start(JSBSimExecutable, JSBSimArgs);
 
           m_ui->console->appendPlainText("Starting JSBSim");
-          m_ui->ConnectButton->setEnabled(true);
-          m_ui->ViewerButton->setEnabled(true);
+          m_ui->StopJSBSimButton->setChecked(false);
 
           QString AircraftDir = installPath + "/JSBSim/aircraft/";
 
@@ -879,7 +882,7 @@ void MainWindow::on_ConnectButton_clicked()
       }
 
       if (jsbsimDataSocket && jsbsimControlsSocket) connected = true;
-      m_ui->StopJSBSimButton->setEnabled(true);
+      m_ui->ConnectButton->setChecked(true);
 
     } else {
 
@@ -890,7 +893,7 @@ void MainWindow::on_ConnectButton_clicked()
         connected = false;
         m_ui->console->appendPlainText("Closed UDP input socket.");
         m_ui->console->appendPlainText("Closed UDP output socket.");
-        m_ui->StopJSBSimButton->setEnabled(false);
+        m_ui->ConnectButton->setChecked(false);
     }
 }
 
@@ -962,9 +965,8 @@ void MainWindow::pauseJSBSim(double command)
 void MainWindow::on_StopJSBSimButton_clicked()
 {
     toggle( &jsbsimTerminate );              // terminate JSBSim
-    m_ui->ConnectButton->setEnabled(false);
-    m_ui->StopJSBSimButton->setEnabled(false);
-    m_ui->StartJSBSimButton->setEnabled(true);
+    m_ui->StartJSBSimButton->setChecked(false);
+    m_ui->console->appendPlainText("Stop signal sent to JSBSim");
 }
 
 void MainWindow::on_QuitButton_clicked()
@@ -985,6 +987,7 @@ void MainWindow::on_ViewerButton_clicked()
          viewer->load(remoteURL);
     }
     viewer->show();
+    m_ui->ViewerButton->setChecked(false);
 }
 
 

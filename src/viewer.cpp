@@ -1,3 +1,9 @@
+/******************************************************************************/
+// License:  GPLv3
+// Author:   David Culp, daveculp@cox.net
+// Date:     15 Dec 2015
+/******************************************************************************/
+
 #include "viewer.h"
 #include "ui_viewer.h"
 
@@ -10,7 +16,7 @@ Viewer::Viewer(QWidget *parent) :
     Aircraft = new aircraft(this);
     frame = ui->webView->page()->mainFrame();
 
-    // can't share the C++ object until the javascript environment is ready
+    // can't share the C++ object until the javascript environment is ready for it
     connect(frame, &QWebFrame::javaScriptWindowObjectCleared, this, &Viewer::shareAircraftObject);
 }
 

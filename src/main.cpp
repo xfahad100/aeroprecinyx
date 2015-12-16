@@ -1,3 +1,11 @@
+/******************************************************************************/
+// License:  GPLv3
+// Author:   David Culp, daveculp@cox.net
+// Date:     17 Mar 2015
+//
+// License for the QFlightInstruments widgets is shown below.
+/******************************************************************************/
+
 /***************************************************************************//**
  * @file example/main.cpp
  * @author  Marek M. Cel <marekcel@mscsim.org>

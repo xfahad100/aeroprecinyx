@@ -1,11 +1,18 @@
+/******************************************************************************/
+// License:  GPLv3
+// Author:   David Culp, daveculp@cox.net
+// Date:     15 Dec 2015
+/******************************************************************************/
 #ifndef VIEWER_H
 #define VIEWER_H
 
 #include <QDialog>
 #include <QWebFrame>
 
+////////////////////////////////////////////////////////////////////////////////
 // The aircraft class contains the data that is made available to the javascript
 // environment in the QWebView object.  This is used to update the camera position.
+//
 class aircraft : public QObject
 {
     Q_OBJECT
@@ -48,8 +55,12 @@ public:
     QWebFrame* frame;
     void load(QUrl url);
     void shareAircraftObject();
-    void updateData(double lat, double lon, double alt,
-                    double pitch, double roll, double yaw);
+    void updateData(double lat,    // geocentric latitude in degrees
+                    double lon,    // geocentric longitude in degrees
+                    double alt,    // altitude MSL in feet
+                    double pitch,  // degrees
+                    double roll,   // degrees
+                    double yaw);   // degrees
     aircraft* Aircraft;
 
 private slots:

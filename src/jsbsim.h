@@ -1,3 +1,12 @@
+/******************************************************************************/
+// License:  GPLv3
+// Author:   David Culp, daveculp@cox.net
+// Date:     15 Dec 2015
+//
+// Purpose:  Encapsulates the JSBSim app as a QProcess, mainly so that the
+//           stdout can be captured and displayed in a console widget.
+/******************************************************************************/
+
 #ifndef JSBSIM_H
 #define JSBSIM_H
 

@@ -1,3 +1,9 @@
+/******************************************************************************/
+// License:  GPLv3
+// Author:   David Culp, daveculp@cox.net
+// Date:     15 Dec 2015
+/******************************************************************************/
+
 #include "debugtable.h"
 #include "ui_debugtable.h"
 #include <QHeaderView>

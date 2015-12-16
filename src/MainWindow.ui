@@ -97,8 +97,19 @@
         <height>27</height>
        </rect>
       </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="toolTip">
+       <string>Launch JSBSim standalone app</string>
+      </property>
       <property name="text">
-       <string>Start</string>
+       <string>   Start   </string>
+      </property>
+      <property name="icon">
+       <iconset resource="icons.qrc">
+        <normaloff>:/images/dkgreen.png</normaloff>
+        <normalon>:/images/green.png</normalon>:/images/dkgreen.png</iconset>
       </property>
       <property name="checkable">
        <bool>true</bool>
@@ -115,6 +126,9 @@
         <width>85</width>
         <height>27</height>
        </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
       </property>
       <property name="text">
        <string>Pause</string>
@@ -140,7 +154,7 @@
      </widget>
      <widget class="QPushButton" name="StopJSBSimButton">
       <property name="enabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -150,8 +164,17 @@
         <height>27</height>
        </rect>
       </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="toolTip">
+       <string>Close JSBSim standalone app</string>
+      </property>
       <property name="text">
        <string>Stop</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
       </property>
      </widget>
     </widget>
@@ -172,7 +195,7 @@
      </property>
      <widget class="QPushButton" name="ViewerButton">
       <property name="enabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -182,11 +205,23 @@
         <height>27</height>
        </rect>
       </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="toolTip">
+       <string>Launch the Cesium viewer window</string>
+      </property>
       <property name="text">
        <string>Viewer</string>
       </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
      </widget>
      <widget class="QPushButton" name="pushButton_6">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -195,11 +230,17 @@
         <height>27</height>
        </rect>
       </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
       <property name="text">
        <string/>
       </property>
      </widget>
      <widget class="QPushButton" name="pushButton_7">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -207,6 +248,9 @@
         <width>85</width>
         <height>27</height>
        </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
       </property>
       <property name="text">
        <string/>
@@ -221,13 +265,19 @@
         <height>27</height>
        </rect>
       </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="toolTip">
+       <string>Close QtJSBSim</string>
+      </property>
       <property name="text">
        <string>Quit</string>
       </property>
      </widget>
      <widget class="QPushButton" name="ConnectButton">
       <property name="enabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -237,8 +287,22 @@
         <height>27</height>
        </rect>
       </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="toolTip">
+       <string>Open UDP communication with JSBSim</string>
+      </property>
       <property name="text">
-       <string>Connect</string>
+       <string> Connect</string>
+      </property>
+      <property name="icon">
+       <iconset resource="icons.qrc">
+        <normaloff>:/images/dkgreen.png</normaloff>
+        <normalon>:/images/green.png</normalon>:/images/dkgreen.png</iconset>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
       </property>
      </widget>
      <widget class="QLabel" name="label_14">
@@ -341,7 +405,7 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_10">
       <attribute name="title">
@@ -488,7 +552,7 @@
         <enum>QFrame::Box</enum>
        </property>
        <property name="text">
-        <string/>
+        <string>None</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -3667,10 +3731,16 @@
       <height>311</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string/>
+    </property>
     <property name="currentIndex">
      <number>4</number>
     </property>
     <widget class="QWidget" name="tab_8">
+     <property name="toolTip">
+      <string>QtJSBSim console</string>
+     </property>
      <attribute name="title">
       <string notr="true">QtJSBSim</string>
      </attribute>
@@ -3694,6 +3764,9 @@
      </widget>
     </widget>
     <widget class="QWidget" name="tab_9">
+     <property name="toolTip">
+      <string>JSBSim stdout</string>
+     </property>
      <attribute name="title">
       <string notr="true">JSBSim</string>
      </attribute>
@@ -3784,6 +3857,9 @@
      </widget>
     </widget>
     <widget class="QWidget" name="tab_13">
+     <property name="toolTip">
+      <string>Aircraft configuration file</string>
+     </property>
      <attribute name="title">
       <string>Aircraft</string>
      </attribute>
@@ -3845,6 +3921,9 @@
      </widget>
     </widget>
     <widget class="QWidget" name="tab_14">
+     <property name="toolTip">
+      <string>Initialization file</string>
+     </property>
      <attribute name="title">
       <string>Init</string>
      </attribute>
@@ -3903,6 +3982,9 @@
      </widget>
     </widget>
     <widget class="QWidget" name="tab_15">
+     <property name="toolTip">
+      <string>Debug variable watch</string>
+     </property>
      <attribute name="title">
       <string>debug</string>
      </attribute>
@@ -3919,7 +4001,9 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>QuitButton</sender>
