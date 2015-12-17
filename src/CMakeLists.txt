@@ -33,6 +33,7 @@ SET(GUI_FILES
 
 SET(RCS_FILES
      qtjsbsim.qrc
+     icons.qrc
    )
 
 QT5_WRAP_UI(UI_SRC ${GUI_FILES})
