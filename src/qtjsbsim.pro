@@ -58,7 +58,8 @@ FORMS += \
 
 RESOURCES += \
     qtjsbsim.qrc \
-    icons.qrc
+    icons.qrc \
+    hud.qrc
 
 OTHER_FILES += \
     qtjsbsim.ini

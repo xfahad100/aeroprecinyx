@@ -8,6 +8,11 @@
 
 #include <QDialog>
 #include <QWebFrame>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QPixmap>
+#include <QGraphicsPixmapItem>
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // The aircraft class contains the data that is made available to the javascript
@@ -66,8 +71,16 @@ public:
 private slots:
     void on_CloseButton_clicked();
 
+    void on_Button5_clicked();
+
 private:
     Ui::Viewer *ui;
+
+    // HUD
+    QGraphicsScene* hudScene;
+    bool hudVisible;
+    QPixmap* hudBasePixmap;
+
 };
 
 #endif // VIEWER_H

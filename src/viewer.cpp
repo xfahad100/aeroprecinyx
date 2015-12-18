@@ -18,12 +18,24 @@ Viewer::Viewer(QWidget *parent) :
 
     // can't share the C++ object until the javascript environment is ready for it
     connect(frame, &QWebFrame::javaScriptWindowObjectCleared, this, &Viewer::shareAircraftObject);
+
+    // HUD
+    hudScene = new QGraphicsScene;
+    hudBasePixmap = new QPixmap;
+    hudVisible = false;
+    hudBasePixmap->load(":/images/hud/hud_base.png");
+    hudScene->addPixmap(*hudBasePixmap);
+    ui->HUDView->setStyleSheet("background-color : rgba(0,0,0,0)");
+    ui->HUDView->setScene(hudScene);
+
 }
 
 Viewer::~Viewer()
 {
     delete ui;
     delete Aircraft;
+    delete hudScene;
+    delete hudBasePixmap;
 }
 
 void Viewer::load(QUrl url)
@@ -34,12 +46,21 @@ void Viewer::load(QUrl url)
 void Viewer::updateData(double lat, double lon, double alt,
                         double pitch, double roll, double yaw)
 {
+    // this data is shared to the Cesium viewer
     Aircraft->setLat(lat);
     Aircraft->setLon(lon);
     Aircraft->setAlt(alt);
     Aircraft->setPitch(pitch);
     Aircraft->setRoll(roll);
     Aircraft->setHdgTrue(yaw);
+
+    // Heads Up Display
+    if (hudVisible) {
+       ui->HUDView->show();
+    } else {
+       ui->HUDView->hide();
+    }
+
 }
 
 void Viewer::shareAircraftObject()
@@ -50,4 +71,10 @@ void Viewer::shareAircraftObject()
 void Viewer::on_CloseButton_clicked()
 {
     this->close();
+}
+
+// Toggle the HUD on/off
+void Viewer::on_Button5_clicked()
+{
+    hudVisible = !hudVisible;
 }
