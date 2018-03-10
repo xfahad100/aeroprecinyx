@@ -429,9 +429,8 @@ void MainWindow::getJSBSimData(void)
     //datagram.append(',');                     // add a ',' at the end
     tokens = datagram.split(',');             // tokenize
 
-    for (int i=0; i<tokens.size(); i++) {
-        data[i] = tokens[i].toDouble();
-    }
+    for (int i=0; i<tokens.size(); i++)
+      data[i] = tokens[i].trimmed().toDouble();
 
     simtime = data.at(0);
     airspeed = data.at(1);
