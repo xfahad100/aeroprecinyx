@@ -191,10 +191,8 @@ MainWindow::~MainWindow()
     delete gearCmd;
     delete sbCmd;
     delete viewer;
-    delete AircraftConfig;
-    delete InitFile;
     delete debug;
-    if ( m_ui ) delete m_ui; m_ui = 0;
+    if ( m_ui ) { delete m_ui; m_ui = 0; }
 }
 
 
@@ -781,6 +779,9 @@ void MainWindow::StartJSBSim(void) {
               InitFile->close();
           }
 
+          delete AircraftConfig;
+          delete InitFile;
+
     }
 }
 
@@ -842,12 +843,12 @@ void MainWindow::readSettings(void) {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Writes settings to the ini file.
+// Writes settings to the ini file.  This is not used yet.
 //
 void MainWindow::writeSettings(void) {
 
     settings = new QSettings(iniPath, QSettings::IniFormat);
-     m_ui->console->appendPlainText("Writing settings to: " + settings->fileName());
+    m_ui->console->appendPlainText("Writing settings to: " + settings->fileName());
 
     // do nothing, yet
 
@@ -998,15 +999,19 @@ QString MainWindow::getInstallPath(void)
 {
     // First, get the current working directory
     installDir = QDir::current();
+    QString DirNameStr = installDir.dirName();
 
-    if (installDir.dirName() == "build-qtjsbsim-Desktop-Debug") {
+    if (DirNameStr == "build-qtjsbsim-Desktop-Debug") {
         // we are running within QtCreator
         installDir.cdUp();
         return installDir.absolutePath();
     }
 
+    // Git repositories like to append things to the qtjsbsim directory name
+    QString TruncatedDirName = DirNameStr.left(8);
+
     while (true){
-        if (installDir.dirName() == "qtjsbsim") return installDir.absolutePath();
+        if (TruncatedDirName == "qtjsbsim") return installDir.absolutePath();
         if (!installDir.cdUp()) {
             qWarning("Could not find the qtjsbsim directory!");
             return installDir.absolutePath();
