@@ -998,26 +998,31 @@ void MainWindow::on_ViewerButton_clicked()
 QString MainWindow::getInstallPath(void)
 {
     // First, get the current working directory
-    installDir = QDir::current();
-    QString DirNameStr = installDir.dirName();
+    QDir currentDir = QDir::current();
+    QString DirNameStr = currentDir.dirName();
 
     if (DirNameStr == "build-qtjsbsim-Desktop-Debug") {
         // we are running within QtCreator
-        installDir.cdUp();
-        return installDir.absolutePath();
+        currentDir.cdUp();
+        return currentDir.absolutePath();
     }
-
-    // Git repositories like to append things to the qtjsbsim directory name
-    QString TruncatedDirName = DirNameStr.left(8);
 
     while (true){
-        if (TruncatedDirName == "qtjsbsim") return installDir.absolutePath();
-        if (!installDir.cdUp()) {
-            qWarning("Could not find the qtjsbsim directory!");
-            return installDir.absolutePath();
+        if (DirNameStr.contains("qtjsbsim", Qt::CaseInsensitive)) {
+            return currentDir.absolutePath();
         }
+        else {
+            if (currentDir.cdUp()) {
+                DirNameStr = currentDir.dirName();
+            } 
+            else {
+                break;
+            }
+        } 
     }
 
+    qWarning("Could not find the qtjsbsim directory!");
+    return currentDir.absolutePath();
 }
 
 
