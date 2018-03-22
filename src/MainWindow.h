@@ -22,6 +22,7 @@
 #include <QButtonGroup>
 #include <QDir>
 #include <viewer.h>
+#include <helpdialog.h>
 #include <debugtable.h>
 #include <plib/js.h>
 #include "jsbsim.h"
@@ -77,6 +78,8 @@ public:
     Viewer* viewer;
     QUrl localURL, remoteURL;
     bool useLocal;
+
+    HelpDialog* helpDialog;
 
     void getJSBSimData(void);
 
@@ -152,8 +155,8 @@ private slots:
     void on_ConnectButton_clicked();
     void on_StopJSBSimButton_clicked();
     void on_QuitButton_clicked();
-
     void on_ViewerButton_clicked();
+    void on_helpButton_clicked();
 
 private:
 

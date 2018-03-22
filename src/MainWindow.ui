@@ -237,9 +237,9 @@
        <string/>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_7">
+     <widget class="QPushButton" name="helpButton">
       <property name="enabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -250,10 +250,10 @@
        </rect>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::NoFocus</enum>
+       <enum>Qt::TabFocus</enum>
       </property>
       <property name="text">
-       <string/>
+       <string>Help</string>
       </property>
      </widget>
      <widget class="QPushButton" name="QuitButton">

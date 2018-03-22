@@ -36,6 +36,7 @@ MainWindow::MainWindow( QWidget * parent ) :
     m_ui->setupUi( this );
     viewer = new Viewer(parent);
     debug = new debugTable(m_ui->tab_15);
+    helpDialog = new HelpDialog(parent);
 
     installPath = getInstallPath();
     iniPath = installPath + "/src/qtjsbsim.ini";
@@ -192,6 +193,7 @@ MainWindow::~MainWindow()
     delete sbCmd;
     delete viewer;
     delete debug;
+    delete helpDialog;
     if ( m_ui ) { delete m_ui; m_ui = 0; }
 }
 
@@ -972,6 +974,13 @@ void MainWindow::on_StopJSBSimButton_clicked()
 void MainWindow::on_QuitButton_clicked()
 {
     this->close();
+}
+
+void MainWindow::on_helpButton_clicked()
+{
+   helpDialog->show();
+   helpDialog->setInstallPath(installPath);
+   helpDialog->loadDefaultPage();
 }
 
 

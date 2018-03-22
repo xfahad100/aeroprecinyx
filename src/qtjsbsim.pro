@@ -37,7 +37,8 @@ HEADERS += \
     QFI/WidgetPFD.h \
     autopilot/PID_v1.h \
     viewer.h \
-    debugtable.h
+    debugtable.h \
+    helpdialog.h
 
 SOURCES += \
     main.cpp \
@@ -48,13 +49,15 @@ SOURCES += \
     QFI/WidgetPFD.cpp \
     autopilot/PID_v1.cpp \
     viewer.cpp \
-    debugtable.cpp
+    debugtable.cpp \
+    helpdialog.cpp
 
 FORMS += \
     MainWindow.ui \
     QFI/WidgetPFD.ui \
     viewer.ui \
-    debugtable.ui
+    debugtable.ui \
+    helpdialog.ui
 
 RESOURCES += \
     qtjsbsim.qrc \
