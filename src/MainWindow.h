@@ -22,7 +22,6 @@
 #include <QButtonGroup>
 #include <QDir>
 #include <viewer.h>
-#include <helpdialog.h>
 #include <debugtable.h>
 #include <plib/js.h>
 #include "jsbsim.h"
@@ -79,10 +78,7 @@ public:
     QUrl localURL, remoteURL;
     bool useLocal;
 
-    HelpDialog* helpDialog;
-
     void getJSBSimData(void);
-
 
     double aileron, elevator, rudder, throttle;
     double pitch_trim, aileron_trim, rudder_trim;
