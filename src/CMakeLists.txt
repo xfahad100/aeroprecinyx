@@ -7,7 +7,6 @@ SET(SRC_OBJS
      MainWindow.cpp
      viewer.cpp
      debugtable.cpp
-     helpdialog.cpp
      autopilot/PID_v1.cpp
      QFI/LayoutSquare.cpp
      QFI/qfi_PFD.cpp
@@ -19,7 +18,6 @@ SET(SRC_HDRS
      MainWindow.h
      viewer.h
      debugtable.h
-     helpdialog.h
      QFI/LayoutSquare.h
      QFI/qfi_ADI.h
      QFI/qfi_PFD.h
@@ -30,7 +28,6 @@ SET(GUI_FILES
      MainWindow.ui
      viewer.ui
      debugtable.ui
-     helpdialog.ui
      QFI/WidgetPFD.ui
    )
 
