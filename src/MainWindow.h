@@ -60,6 +60,8 @@ public:
     int buttons;           // contains all button values bitwise
     int* b;                // an array of button values
     float* deadband;
+    int elevator_axis, aileron_axis, rudder_axis, throttle_axis;
+    int aileron_trim_axis, elevator_trim_axis;
     void get_joystick_inputs(void);
     void update_joystick_display(void);
 

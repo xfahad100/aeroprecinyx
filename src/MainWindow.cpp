@@ -134,11 +134,13 @@ MainWindow::MainWindow( QWidget * parent ) :
     b = new int[32];
     deadband = new float[3];
     for (int i=0; i<16; i++) {
-       ax[i] = 0.0;
+       ax[i] = -1.0;
     }
     for (int i=0; i<32; i++) {
        b[i] = 0.0;
     }
+    elevator_axis = aileron_axis = rudder_axis = -1;  // -1 signifies not assigned yet
+    elevator_trim_axis = aileron_trim_axis = throttle_axis = -1;
     deadband[0] = deadband[1] = deadband[2] = 0.0;
 
     if (joystick->notWorking()) {
@@ -235,13 +237,15 @@ void MainWindow::get_joystick_inputs(void)
 
     joystick->read(&buttons, ax);
 
-    aileron = ax[0];
-    elevator = -ax[1];
-    rudder = -ax[2];
-    throttle = (ax[3]-1.0)/-2.0;
-    aileron_trim += ax[4] * dt/5.0;
-    pitch_trim -= ax[5] * dt * pitch_trim_rate;
-
+    // first check if that axis has been assigned
+    if (aileron_axis >= 0) aileron = ax[aileron_axis];
+    if (elevator_axis >= 0) elevator = -ax[elevator_axis];
+    if (rudder_axis >= 0) rudder = -ax[rudder_axis];
+    if (throttle_axis >= 0) throttle = (ax[throttle_axis]-1.0)/-2.0;
+    if (aileron_trim_axis >= 0) aileron_trim += ax[aileron_trim_axis] * dt/5.0;
+    if (elevator_trim_axis >= 0) {
+          pitch_trim -= ax[elevator_trim_axis] * dt * pitch_trim_rate;
+    }
 }
 
 
@@ -763,7 +767,7 @@ void MainWindow::StartJSBSim(void) {
 
           JSBSim->start(JSBSimExecutable, JSBSimArgs);
 
-          m_ui->console->appendPlainText("Starting JSBSim");
+          m_ui->console->appendPlainText("Starting " + JSBSimExecutable);
           m_ui->StopJSBSimButton->setChecked(false);
 
           QString AircraftDir = installPath + "/JSBSim/aircraft/";
@@ -814,16 +818,22 @@ void MainWindow::readSettings(void) {
     if (arg5.length() > 0) JSBSimArgs << arg5;
     if (arg6.length() > 0) JSBSimArgs << arg6;
 
-    inputPort = settings->value("ports/input").toInt();
+    inputPort =  settings->value("ports/input").toInt();
     outputPort = settings->value("ports/output").toInt();
     telnetPort = settings->value("ports/telnet").toInt();
 
-    ui_rate = settings->value("rates/UI").toFloat();
+    ui_rate =     settings->value("rates/UI").toFloat();
     output_rate = settings->value("rates/output").toFloat();
 
-    pitch_trim = settings->value("aircraft/pitch-trim").toDouble();
+    pitch_trim =      settings->value("aircraft/pitch-trim").toDouble();
     pitch_trim_rate = settings->value("aircraft/pitch-trim-rate").toFloat();
 
+    elevator_axis =   settings->value("joystick/elevator-axis").toInt();
+    aileron_axis =    settings->value("joystick/aileron-axis").toInt();
+    rudder_axis =     settings->value("joystick/rudder-axis").toInt();
+    throttle_axis =   settings->value("joystick/throttle-axis").toInt();
+    aileron_trim_axis =  settings->value("joystick/aileron-trim-axis").toInt();
+    elevator_trim_axis = settings->value("joystick/elevator-trim-axis").toInt();
     deadband[0] = settings->value("joystick/axis-0-deadband").toFloat();
     deadband[1] = settings->value("joystick/axis-1-deadband").toFloat();
     deadband[2] = settings->value("joystick/axis-2-deadband").toFloat();
@@ -836,7 +846,7 @@ void MainWindow::readSettings(void) {
 
     localURL  = QUrl(settings->value("viewer/localURL").toString());
     remoteURL = QUrl(settings->value("viewer/remoteURL").toString());
-    useLocal  = settings->value("viewer/use-local").toBool();
+    useLocal  =      settings->value("viewer/use-local").toBool();
 
     delete settings;
 
