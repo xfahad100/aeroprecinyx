@@ -1,8 +1,14 @@
-The QtJSBSim project is a demonstration of how to build a modular flight simulator.  In this case the QtJSBSim app is the command center which takes user inputs from keyboard, joystick and mouse.  It launches a flight dynamics model (FDM), which comes from the JSBSim project, and communicates with it remotely via sockets.  Data from the flight dynamics model is then displayed on the QtJSBSim interface, and can also be sent to an out-the-window viewer which is powered by the Cesium project.
+The QtJSBSim project is a demonstration of how to build a modular flight simulator.  In this
+ case the QtJSBSim app is the command center which takes user inputs from keyboard, joystick
+ and mouse.  It launches a flight dynamics model (FDM), which comes from the JSBSim project,
+ and communicates with it remotely via sockets.  Data from the flight dynamics model is then
+ displayed on the QtJSBSim interface, and can also be sent to an out-the-window viewer which
+ is powered by the Cesium project.
 
 The app was built with QtCreator, but it can also be built from source using cmake.
 
-I only build and run QtJSBSim on the linux platform, so I would appreciate feedback on how building and running on other operating systems proceeds.
+I only build and run QtJSBSim on the linux platform, so I would appreciate feedback on how
+ building and running on other operating systems proceeds.
 
 
 David Culp
