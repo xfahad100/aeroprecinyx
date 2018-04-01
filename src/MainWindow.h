@@ -115,7 +115,7 @@ public:
     double fuel_total, weight, empty_weight, payload, payload_cmd;
     double wind_dir, wind_speed, deltaT;
     double Pt, Qbar, TAT, OAT, Re, g, rho;
-    double jsbsim_dt, jsbsimTerminate, pause;
+    double jsbsim_dt, jsbsimTerminate, jsbsimPause;
     float  ui_rate, output_rate;
     int counter;
     bool firstTime;
@@ -155,6 +155,7 @@ private slots:
     void on_QuitButton_clicked();
     void on_ViewerButton_clicked();
     void on_helpButton_clicked();
+    void on_PauseJSBSimButton_clicked();
 
 private:
 
@@ -177,7 +178,6 @@ private:
 
     void readSettings(void);
     void writeSettings(void);
-    void pauseJSBSim(double command);
     void setDebugWatch(void);
     void doDebugCalculations(void);
 

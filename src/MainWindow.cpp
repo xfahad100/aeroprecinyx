@@ -70,7 +70,7 @@ MainWindow::MainWindow( QWidget * parent ) :
     payload_cmd = 10000.0;
     wind_dir = wind_speed = deltaT = 0.0;
     Pt = Qbar = TAT = OAT = Re = g = dt = 0.0;
-    steering = pause = 0.0;
+    steering = 0.0;
     numEngines = 0;
     selected_engine = -1.0;
     flap_pos = flap_cmd = speedbrakes_cmd = steering = 0.0;
@@ -80,7 +80,7 @@ MainWindow::MainWindow( QWidget * parent ) :
     payload_cmd = 0;
     wind_dir = wind_speed = deltaT = 0.0;
     Pt = Qbar = TAT = OAT = Re = g = rho = 0.0;
-    jsbsimTerminate = jsbsim_dt = 0.0;
+    jsbsimTerminate = jsbsim_dt = jsbsimPause = 0.0;
     jsbsimDataSocket = NULL;
     jsbsimControlsSocket = NULL;
     JSBSim = NULL;
@@ -385,7 +385,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
            toggle( &steering );           // (nose/tail) wheel steering
            break;
         case Qt::Key_P:
-           pauseJSBSim( toggle( &pause ) );  // pause/unpause JSBSim
+           m_ui->PauseJSBSimButton->click();   // pause/resume JSBSim
            break;
         case Qt::Key_1:
            selected_engine = 1.0;         // select engine one
@@ -548,6 +548,8 @@ void MainWindow::setJSBSimControls(void)
    datagram.append(QString::number(altTerrain, 'f', 5));
    datagram.append(',');
    datagram.append(QString::number(jsbsimTerminate, 'f', 0));
+   datagram.append(',');
+   datagram.append(QString::number(jsbsimPause, 'f', 0));
    datagram.append(',');
 
    jsbsimControlsSocket->writeDatagram(datagram, hostAddress, outputPort);
@@ -786,6 +788,9 @@ void MainWindow::StartJSBSim(void) {
 
           delete AircraftConfig;
           delete InitFile;
+          m_ui->ConnectButton->setEnabled(true);
+          m_ui->PauseJSBSimButton->setEnabled(true);
+          m_ui->StopJSBSimButton->setEnabled(true);
 
     }
 }
@@ -964,13 +969,14 @@ void MainWindow::on_temperatureEdit_returnPressed()
 }
 
 
-void MainWindow::pauseJSBSim(double command)
+void MainWindow::on_PauseJSBSimButton_clicked()
 {
-    if (command) {
-        // do nothing yet
-    } else {
-        // do nothing yet
-    }
+   toggle( &jsbsimPause );
+   if (jsbsimPause) {
+       m_ui->PauseJSBSimButton->setText("Resume");
+   }  else {
+       m_ui->PauseJSBSimButton->setText("Pause");
+   }
 }
 
 void MainWindow::on_StopJSBSimButton_clicked()
@@ -982,6 +988,7 @@ void MainWindow::on_StopJSBSimButton_clicked()
 
 void MainWindow::on_QuitButton_clicked()
 {
+    viewer->close();
     this->close();
 }
 

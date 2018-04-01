@@ -154,7 +154,7 @@
      </widget>
      <widget class="QPushButton" name="StopJSBSimButton">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -277,7 +277,7 @@
      </widget>
      <widget class="QPushButton" name="ConnectButton">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>

@@ -934,7 +934,7 @@
  <!-- this is the telnet interface -->
  <!-- <input port="5137" /> -->
  
- <!-- 17 properties input, + 1 for the time stamp -->
+ <!-- 18 properties input, + 1 for the time stamp -->
  <input port="5139" type="QTJSBSIM" rate="20">
    
   <property> fcs/aileron-cmd-norm </property> 
@@ -955,7 +955,8 @@
   <property> inertia/pointmass-weight-lbs[0] </property>
   <property> position/terrain-elevation-asl-ft </property>
   <property> simulation/terminate </property>
-  
+  <property> simulation/pause </property>
+
  </input>  
 
 </fdm_config>
