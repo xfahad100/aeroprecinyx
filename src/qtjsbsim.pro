@@ -37,7 +37,8 @@ HEADERS += \
     QFI/WidgetPFD.h \
     autopilot/PID_v1.h \
     viewer.h \
-    debugtable.h
+    debugtable.h \
+    navigation.h
 
 SOURCES += \
     main.cpp \
@@ -48,7 +49,8 @@ SOURCES += \
     QFI/WidgetPFD.cpp \
     autopilot/PID_v1.cpp \
     viewer.cpp \
-    debugtable.cpp
+    debugtable.cpp \
+    navigation.cpp
 
 FORMS += \
     MainWindow.ui \

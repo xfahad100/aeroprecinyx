@@ -869,7 +869,7 @@
     </aerodynamics>
 
  <!-- 52 properties output, + 1 for the time stamp -->
- <output name="localhost" type="QTJSBSIM" port="5138"  rate="10">
+ <output name="localhost" type="SOCKET" protocol="UDP" port="5138"  rate="10">
    
   <property> velocities/vc-kts </property>
   <property> position/h-sl-ft </property>

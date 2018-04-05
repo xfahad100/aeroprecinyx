@@ -150,6 +150,9 @@ MainWindow::MainWindow( QWidget * parent ) :
         m_ui->console->appendPlainText("Joystick buttons = " + QString::number(NumButtons));
     }
 
+    // Create a navigation instance
+    nav = new navigation;
+
     // Read settings from init file
     readSettings();
 
@@ -195,6 +198,7 @@ MainWindow::~MainWindow()
     delete sbCmd;
     delete viewer;
     delete debug;
+    delete nav;
     if ( m_ui ) { delete m_ui; m_ui = 0; }
 }
 
@@ -216,6 +220,7 @@ void MainWindow::MainLoop()
     get_joystick_inputs();
     update_joystick_display();
     getJSBSimData();
+    UpdateNavigation();
     UpdateDisplays();
     doDebugCalculations();
     debug->update();
@@ -574,7 +579,7 @@ void MainWindow::UpdateDisplays()
   m_ui->widgetPFD->setClimbRate(climb_rate);
   m_ui->widgetPFD->setMachNo(mach);
   m_ui->widgetPFD->setSlipSkid(beta);
-  m_ui->widgetPFD->setHeading(yaw);   // for now, true heading
+  m_ui->widgetPFD->setHeading(nav->GetMagHdg());
 
   // Send data to tab 1 (Attitude)
   m_ui->dataLabel_1->setText(QString::number(pitch, 'f', 4));
@@ -690,6 +695,17 @@ void MainWindow::UpdateDisplays()
 
   m_ui->widgetPFD->update();
 
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Send updated position information from JSBSim to the navigation computer
+//
+void MainWindow::UpdateNavigation()
+{
+  nav->SetPosition(latitude, longitude, altitude);
+  nav->SetTrueHeading(yaw);
 }
 
 
@@ -852,6 +868,16 @@ void MainWindow::readSettings(void) {
     localURL  = QUrl(settings->value("viewer/localURL").toString());
     remoteURL = QUrl(settings->value("viewer/remoteURL").toString());
     useLocal  =      settings->value("viewer/use-local").toBool();
+
+    nav->SetMagVar(settings->value("airport/magvar").toDouble());
+    nav->SetILSRunwayEndPoints(settings->value("airport/ILS-runway-near-latitude").toDouble(),
+                               settings->value("airport/ILS-runway-near-longitude").toDouble(),
+                               settings->value("airport/ILS-runway-far-latitude").toDouble(),
+                               settings->value("airport/ILS-runway-far-longitude").toDouble());
+    nav->SetILSFrequency(settings->value("airport/ILS-frequency").toFloat());
+    nav->SetILSCourseMag(settings->value("airport/ILS-course-mag").toDouble());
+    nav->SetILSGS(settings->value("airport/ILS-GS").toDouble());
+    nav->SetILSTDZE(settings->value("airport/ILS-TDZE").toDouble());
 
     delete settings;
 

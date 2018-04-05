@@ -25,6 +25,7 @@
 #include <debugtable.h>
 #include <plib/js.h>
 #include "jsbsim.h"
+#include "navigation.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -124,6 +125,8 @@ public:
     quint16 outputPort, inputPort, telnetPort;
     QHostAddress hostAddress;
 
+    navigation* nav;
+
 public slots:
 
     void MainLoop(void);
@@ -134,6 +137,7 @@ public slots:
 protected:
 
     void UpdateDisplays(void);
+    void UpdateNavigation(void);
     void keyPressEvent( QKeyEvent * event);
     double toggle( double* number);
     double step( double* number, int numsteps, int direction);
