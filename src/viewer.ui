@@ -36,51 +36,51 @@
     <rect>
      <x>10</x>
      <y>397</y>
-     <width>80</width>
+     <width>50</width>
      <height>22</height>
     </rect>
    </property>
    <property name="text">
-    <string/>
+    <string>⬅</string>
    </property>
   </widget>
   <widget class="QPushButton" name="Button2">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>74</x>
      <y>397</y>
-     <width>80</width>
+     <width>50</width>
      <height>22</height>
     </rect>
    </property>
    <property name="text">
-    <string/>
+    <string> ➡</string>
    </property>
   </widget>
   <widget class="QPushButton" name="Button3">
    <property name="geometry">
     <rect>
-     <x>190</x>
+     <x>210</x>
      <y>397</y>
-     <width>80</width>
+     <width>50</width>
      <height>22</height>
     </rect>
    </property>
    <property name="text">
-    <string/>
+    <string>⬆</string>
    </property>
   </widget>
   <widget class="QPushButton" name="Button4">
    <property name="geometry">
     <rect>
-     <x>280</x>
+     <x>274</x>
      <y>397</y>
-     <width>80</width>
+     <width>50</width>
      <height>22</height>
     </rect>
    </property>
    <property name="text">
-    <string/>
+    <string>⬇</string>
    </property>
   </widget>
   <widget class="QPushButton" name="Button5">
@@ -165,6 +165,19 @@
    </property>
    <property name="alignment">
     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="Button6">
+   <property name="geometry">
+    <rect>
+     <x>142</x>
+     <y>397</y>
+     <width>50</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>¤</string>
    </property>
   </widget>
  </widget>

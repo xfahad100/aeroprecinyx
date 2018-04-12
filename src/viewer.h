@@ -24,7 +24,8 @@ class aircraft : public QObject
 
 public:
     aircraft(QObject* parent=0) : QObject(parent) {
-        a_lat=a_lon=a_alt=a_pitch=a_roll=a_hdg_true=0;
+        a_lat=a_lon=a_alt=a_pitch=a_roll=a_hdg_true=
+        cameraH=cameraV=0;
     }
 
     Q_INVOKABLE inline double lat()      {return a_lat;}
@@ -33,15 +34,20 @@ public:
     Q_INVOKABLE inline double pitch()    {return a_pitch;}
     Q_INVOKABLE inline double roll()     {return a_roll;}
     Q_INVOKABLE inline double hdg_true() {return a_hdg_true;}
+    Q_INVOKABLE inline double camBiasH()    {return cameraH;}
+    Q_INVOKABLE inline double camBiasV()    {return cameraV;}
     inline void setLat(double lat)          { a_lat = lat; }
     inline void setLon(double lon)          { a_lon = lon; }
     inline void setAlt(double alt)          { a_alt = alt; }
     inline void setPitch(double pitch)      { a_pitch = pitch; }
     inline void setRoll(double roll)        { a_roll = roll; }
     inline void setHdgTrue(double hdg_true) { a_hdg_true = hdg_true; }
+    inline void setCameraH(int bias)     { cameraH = (double)bias; }
+    inline void setCameraV(int bias)     { cameraV = (double)bias; }
 
 private:
-    double a_lat, a_lon, a_alt, a_pitch, a_roll, a_hdg_true;
+    double a_lat, a_lon, a_alt, a_pitch, a_roll, a_hdg_true,
+           cameraH, cameraV;
 };
 
 
@@ -67,19 +73,33 @@ public:
                     double roll,   // degrees
                     double yaw);   // degrees
     aircraft* Aircraft;
+    void setCameraBias( int horizontal, int vertical);
 
 private slots:
     void on_CloseButton_clicked();
 
     void on_Button5_clicked();
 
+    void on_Button1_clicked();
+
+    void on_Button2_clicked();
+
+    void on_Button3_clicked();
+
+    void on_Button4_clicked();
+
+    void on_Button6_clicked();
+
 private:
     Ui::Viewer *ui;
+    int viewBiasH;
+    int viewBiasV;
 
     // HUD
     QGraphicsScene* hudScene;
     bool hudVisible;
     QPixmap* hudBasePixmap;
+
 
 };
 

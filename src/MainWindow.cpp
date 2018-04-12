@@ -85,6 +85,7 @@ MainWindow::MainWindow( QWidget * parent ) :
     jsbsimControlsSocket = NULL;
     JSBSim = NULL;
     firstTime = true;
+    FPM_enabled = false;
     rEllipse = 0.0;
     connected = false;
     counter = 0;
@@ -152,6 +153,7 @@ MainWindow::MainWindow( QWidget * parent ) :
 
     // Create a navigation instance
     nav = new navigation;
+    nav->SetILSEngaged(false);
 
     // Read settings from init file
     readSettings();
@@ -576,10 +578,19 @@ void MainWindow::UpdateDisplays()
   m_ui->widgetPFD->setAltitude(altitude);
   m_ui->widgetPFD->setPitch(pitch);
   m_ui->widgetPFD->setRoll(roll);
-  m_ui->widgetPFD->setClimbRate(climb_rate);
+  m_ui->widgetPFD->setClimbRate(climb_rate * 0.001);
   m_ui->widgetPFD->setMachNo(mach);
   m_ui->widgetPFD->setSlipSkid(beta);
   m_ui->widgetPFD->setHeading(nav->GetMagHdg());
+  if (FPM_enabled) {
+      m_ui->widgetPFD->setFlightPathMarker(-aoa, 0, true);
+  } else {
+      m_ui->widgetPFD->setFlightPathMarker(0, 0, false);
+  }
+  // flight director disabled for now
+  m_ui->widgetPFD->setBarH(0.0, false);
+  m_ui->widgetPFD->setBarV(0.0, false);
+
 
   // Send data to tab 1 (Attitude)
   m_ui->dataLabel_1->setText(QString::number(pitch, 'f', 4));
@@ -706,6 +717,18 @@ void MainWindow::UpdateNavigation()
 {
   nav->SetPosition(latitude, longitude, altitude);
   nav->SetTrueHeading(yaw);
+  nav->Update();
+  if (m_ui->ILSButton->isChecked()) {
+    m_ui->widgetPFD->setDotH(-nav->GetCourseErrorDeg()*0.4, true);
+    m_ui->widgetPFD->setDotV(-nav->GetGSErrorDeg(), true);
+  } else {
+    m_ui->widgetPFD->setDotH(0.0, false);
+    m_ui->widgetPFD->setDotV(0.0, false);
+  }
+  // debug
+  intercept = -nav->GetCourseErrorDeg();
+  dist = nav->GetDistance();
+  gserror = -nav->GetGSErrorDeg();
 }
 
 
@@ -878,6 +901,7 @@ void MainWindow::readSettings(void) {
     nav->SetILSCourseMag(settings->value("airport/ILS-course-mag").toDouble());
     nav->SetILSGS(settings->value("airport/ILS-GS").toDouble());
     nav->SetILSTDZE(settings->value("airport/ILS-TDZE").toDouble());
+    nav->SetRwyLength(settings->value("airport/runway-length-ft").toDouble());
 
     delete settings;
 
@@ -925,6 +949,7 @@ void MainWindow::on_ConnectButton_clicked()
 
       if (jsbsimDataSocket && jsbsimControlsSocket) connected = true;
       m_ui->ConnectButton->setChecked(true);
+      m_ui->ConnectButton->setEnabled(false);
 
     } else {
 
@@ -1009,6 +1034,7 @@ void MainWindow::on_StopJSBSimButton_clicked()
 {
     toggle( &jsbsimTerminate );              // terminate JSBSim
     m_ui->StartJSBSimButton->setChecked(false);
+    m_ui->ConnectButton->setEnabled(true);
     m_ui->console->appendPlainText("Stop signal sent to JSBSim");
 }
 
@@ -1023,6 +1049,10 @@ void MainWindow::on_helpButton_clicked()
     QDesktopServices::openUrl(QUrl("file:///" + installPath + "/docs/en/home.html"));
 }
 
+void MainWindow::on_ILSButton_clicked()
+{
+    nav->SetILSEngaged(m_ui->ILSButton->isChecked());
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Display the Cesium viewer window
@@ -1087,6 +1117,9 @@ void MainWindow::setDebugWatch(void)
 {
   debug->addItem( "ellipsoid radius (ft)", &rEllipse );
   debug->addItem( "radius to CG (ft)", &CGRadius);
+  debug->addItem("LOC error (deg)", &intercept);
+  debug->addItem("ILS distance (nm)", &dist);
+  debug->addItem("GS error (deg)", &gserror);
 }
 
 
@@ -1105,4 +1138,14 @@ void MainWindow::doDebugCalculations(void)
    rEllipse = b / sqrt( 1 - e2 * clat * clat );
 
    CGRadius = rEllipse + altTerrain + 3.62; // 3.62 for 737 model sitting height
+}
+
+void MainWindow::on_spinBox_2_valueChanged(int arg1)
+{
+    //m_ui->widgetPFD->setHeading(float(arg1));
+}
+
+void MainWindow::on_FPMButton_toggled(bool checked)
+{
+    FPM_enabled = checked;   // toggle Flight Path Marker
 }

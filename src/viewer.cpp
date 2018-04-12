@@ -15,6 +15,7 @@ Viewer::Viewer(QWidget *parent) :
     ui->CloseButton->setEnabled(true);
     Aircraft = new aircraft(this);
     frame = ui->webView->page()->mainFrame();
+    viewBiasH = viewBiasV = 0;
 
     // can't share the C++ object until the javascript environment is ready for it
     connect(frame, &QWebFrame::javaScriptWindowObjectCleared, this, &Viewer::shareAircraftObject);
@@ -77,4 +78,53 @@ void Viewer::on_CloseButton_clicked()
 void Viewer::on_Button5_clicked()
 {
     hudVisible = !hudVisible;
+}
+
+void Viewer::setCameraBias(int horizontal, int vertical)
+{
+    viewBiasH = horizontal;
+    viewBiasV = vertical;
+    Aircraft->setCameraH(viewBiasH);
+    Aircraft->setCameraV(viewBiasV);
+}
+
+//////////////////////////////////////////////////////////////////
+//
+// Buttons 1,2,3,4,6 control the view offset.  The offsets are
+// integers, but the JavaScript bridge expects real numbers.
+
+// look left
+void Viewer::on_Button1_clicked()
+{
+    viewBiasH -= 1;
+    Aircraft->setCameraH(viewBiasH);
+}
+
+// look right
+void Viewer::on_Button2_clicked()
+{
+    viewBiasH += 1;
+    Aircraft->setCameraH(viewBiasH);
+}
+
+// look up
+void Viewer::on_Button3_clicked()
+{
+    viewBiasV += 1;
+    Aircraft->setCameraV(viewBiasV);
+}
+
+// look down
+void Viewer::on_Button4_clicked()
+{
+    viewBiasV -= 1;
+    Aircraft->setCameraV(viewBiasV);
+}
+
+// return view to center
+void Viewer::on_Button6_clicked()
+{
+    viewBiasH = viewBiasV = 0;
+    Aircraft->setCameraH(viewBiasH);
+    Aircraft->setCameraV(viewBiasV);
 }

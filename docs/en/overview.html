@@ -16,7 +16,7 @@
 
 <a name="PFD"></a>
 <br><br><font size="4">1.</font>&nbsp&nbsp
-This is the PFD (Primary Flight Display).  It is designed to represent a typical modern PFD.  On the left is the speed tape, which displays the airspeed in knots.  Just below the speed tape is the Mach number display. In the center is the AI (Attitude Indicator). Currently only the pitch, roll and beta indications are working.  The flight director bars, localizer, glide slope, and slip indicator are not yet supported in QtJSBSim. To the right of the AI is the altitude tape, which displays altitude in feet.  At far right is the vertical speed indicator, which is not yet supported in QtJSBSim.  Below the altitude tape is the altimeter barometric pressure setting.  This is not yet supported in QtJSBSim and always displays standard pressure.  At the bottom of the PFD is a compass display which displays magnetic heading.
+This is the PFD (Primary Flight Display).  It is designed to represent a typical modern PFD.  On the left is the speed tape, which displays the airspeed in knots.  Just below the speed tape is the Mach number display. In the center is the AI (Attitude Indicator). The flight director bars are not yet supported in QtJSBSim. To the right of the AI is the altitude tape, which displays altitude in feet.  At far right is the vertical speed indicator, which displays vertical speed in 1000's of feet per minute.  Below the altitude tape is the altimeter barometric pressure setting.  This is not yet supported in QtJSBSim and always displays standard pressure.  At the bottom of the PFD is a compass display which displays magnetic heading.
 
 <a name="controls"></a>
 <br><br><br><font size="4">2.</font>&nbsp&nbsp
@@ -48,6 +48,7 @@ This is the aircraft controls section.  There are four tabs:
   <li><b>joystick</b>&nbsp-&nbsp Shows the joystick name string and the control inputs.</li>
   <li><b>aircraft</b>&nbsp-&nbsp Provides means to control aircraft configuration.</li>
   <li><b>sim</b>&nbsp-&nbsp Provides means to control the simulation environment.</li>
+  <li><b>Nav</b>&nbsp-&nbsp Provides some PFD  and navigation controls.</li>
   <li><b>autopilot</b>&nbsp-&nbsp is not yet implemented.</li>
 </ul>
 

@@ -121,11 +121,17 @@ public:
     int counter;
     bool firstTime;
     double rEllipse;
+    bool FPM_enabled;
 
     quint16 outputPort, inputPort, telnetPort;
     QHostAddress hostAddress;
 
     navigation* nav;
+
+    // temporary debug variables
+    double intercept;
+    double dist;
+    double gserror;
 
 public slots:
 
@@ -160,6 +166,11 @@ private slots:
     void on_ViewerButton_clicked();
     void on_helpButton_clicked();
     void on_PauseJSBSimButton_clicked();
+    void on_ILSButton_clicked();
+
+    void on_spinBox_2_valueChanged(int arg1);
+
+    void on_FPMButton_toggled(bool checked);
 
 private:
 

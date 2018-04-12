@@ -45,7 +45,7 @@ The ini file contains the following sections:
 <ul>
   <li><b>JSBSim will not start -</b>&nbsp;&nbsp;First check that the ini file has the correct path to the JSBSim executable.  If it is OK, then the problem is probably in the aircraft configuration file or init file used by JSBSim.  You may have to run JSBSim from a separate console window to debug your configuration files.
   <br><br><li><b>Joystick axes/buttons wrong -</b>&nbsp;&nbsp;Joystick axes and button numbering vary between operating systems.  The default numbering works in linux, but may not work in your OS.  Assignment of axis numbers has just been added to the ini file (24 Mar 2018), however it may take more than just renumbering to get the axes to work right.  For instance your joystick axis may be reversed, or may have a different range.  In this case the only solution is to edit the get_joystick_inputs function in MainWindow.cpp.  The default joystick handling works for the Logitech Extreme 3D Pro installed on a linux OS.
-  <br><br><li><b>Nothing appears in Viewer -</b>&nbsp;&nbsp;You need an internet connection with enough bandwidth to load the terrain mesh and photo overlays in a reasonable amount of time.  Servers may be down.  Local internet security apps may interfere.
+  <br><br><li><b>Nothing appears in Viewer -</b>&nbsp;&nbsp;You need an internet connection with enough bandwidth to load the terrain mesh and photo overlays in a reasonable amount of time.  Servers may be down.  Local internet security apps may interfere.  You may need to use more recent QtJSBSim since the viewer code changed (12 Apr 2018) to support CesiumJS version 1.44.
 </ul> 
 </p>
 

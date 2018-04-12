@@ -90,9 +90,9 @@ public:
         m_pfd->setPitch( pitch );
     }
 
-    inline void setFlightPathMarker( float aoa, float sideslip )
+    inline void setFlightPathMarker( float aoa, float sideslip, bool isVisible )
     {
-        m_pfd->setFlightPathMarker( aoa, sideslip );
+        m_pfd->setFlightPathMarker( aoa, sideslip, isVisible );
     }
 
     inline void setSlipSkid( float slipSkid )
@@ -100,16 +100,24 @@ public:
         m_pfd->setSlipSkid( slipSkid );
     }
 
-    inline void setDevH( float devH )
+    inline void setBarH( float barH, bool isVisible )
     {
-        m_pfd->setBarH( devH );
-        m_pfd->setDotH( devH );
+        m_pfd->setBarH( barH, isVisible );
     }
 
-    inline void setDevV( float devV )
+    inline void setDotH( float dotH, bool isVisible )
     {
-        m_pfd->setBarV( devV );
-        m_pfd->setDotV( devV );
+        m_pfd->setDotH( dotH, isVisible );
+    }
+
+    inline void setBarV( float barV, bool isVisible )
+    {
+        m_pfd->setBarV( barV, isVisible );
+    }
+
+    inline void setDotV( float dotV, bool isVisible )
+    {
+        m_pfd->setDotV( dotV, isVisible );
     }
 
     inline void setAltitude( float altitude )
