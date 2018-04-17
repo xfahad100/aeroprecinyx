@@ -19,6 +19,10 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}"
   "${PROJECT_BINARY_DIR}/src"
   "${CMAKE_SOURCE_DIR}/src/QFI"
   "${CMAKE_SOURCE_DIR}/src/autopilot"
+  "${CMAKE_SOURCE_DIR}/src/nav"
+  "${CMAKE_SOURCE_DIR}/src/viewer"
+  "${CMAKE_SOURCE_DIR}/src/debug"
+  "${CMAKE_SOURCE_DIR}/src/jsbsim"
   ${PLIB_INCLUDE_DIR}
   )
 

@@ -155,6 +155,10 @@ MainWindow::MainWindow( QWidget * parent ) :
     nav = new navigation;
     nav->SetILSEngaged(false);
 
+    // Create an autopilot instance
+    ap = new autopilot;
+    FDvisible = false;
+
     // Read settings from init file
     readSettings();
 
@@ -201,6 +205,7 @@ MainWindow::~MainWindow()
     delete viewer;
     delete debug;
     delete nav;
+    delete ap;
     if ( m_ui ) { delete m_ui; m_ui = 0; }
 }
 
@@ -223,6 +228,7 @@ void MainWindow::MainLoop()
     update_joystick_display();
     getJSBSimData();
     UpdateNavigation();
+    UpdateAutopilot();
     UpdateDisplays();
     doDebugCalculations();
     debug->update();
@@ -517,6 +523,11 @@ void MainWindow::setJSBSimControls(void)
 {
    if (!connected) return;
 
+   if (ap->getEngaged()){
+       if (ap->getVMode() != autopilot::VNone) elevator = ap_elevator_cmd;
+       if (ap->getLMode() != autopilot::LNone) aileron = ap_aileron_cmd;
+   }
+
    QByteArray datagram;
    datagram.clear();
 
@@ -587,10 +598,6 @@ void MainWindow::UpdateDisplays()
   } else {
       m_ui->widgetPFD->setFlightPathMarker(0, 0, false);
   }
-  // flight director disabled for now
-  m_ui->widgetPFD->setBarH(0.0, false);
-  m_ui->widgetPFD->setBarV(0.0, false);
-
 
   // Send data to tab 1 (Attitude)
   m_ui->dataLabel_1->setText(QString::number(pitch, 'f', 4));
@@ -705,6 +712,8 @@ void MainWindow::UpdateDisplays()
 
 
   m_ui->widgetPFD->update();
+  m_ui->FlapsDisplay->setValue((int)(flap_pos * 100));
+  m_ui->GearDisplay->setValue((int)(gear_pos * 100));
 
 }
 
@@ -718,13 +727,17 @@ void MainWindow::UpdateNavigation()
   nav->SetPosition(latitude, longitude, altitude);
   nav->SetTrueHeading(yaw);
   nav->Update();
+
+  // Display ILS data on the PFD
   if (m_ui->ILSButton->isChecked()) {
-    m_ui->widgetPFD->setDotH(-nav->GetCourseErrorDeg()*0.4, true);
+    int rev = (abs(nav->GetILSCourse()-nav->GetMagHdg()) > 90.0) ? -1:1;
+    m_ui->widgetPFD->setDotH(rev * -nav->GetCourseErrorDeg()*0.4, true);
     m_ui->widgetPFD->setDotV(-nav->GetGSErrorDeg(), true);
   } else {
     m_ui->widgetPFD->setDotH(0.0, false);
     m_ui->widgetPFD->setDotV(0.0, false);
   }
+
   // debug
   intercept = -nav->GetCourseErrorDeg();
   dist = nav->GetDistance();
@@ -1059,7 +1072,7 @@ void MainWindow::on_ILSButton_clicked()
 //
 void MainWindow::on_ViewerButton_clicked()
 {
-    viewer->setWindowTitle("Cesium Viewer");
+    viewer->setWindowTitle("CesiumJS Viewer");
     if (useLocal) {
          viewer->load(localURL);
     } else {
@@ -1140,12 +1153,114 @@ void MainWindow::doDebugCalculations(void)
    CGRadius = rEllipse + altTerrain + 3.62; // 3.62 for 737 model sitting height
 }
 
+
+// set desired heading (degrees magnetic)
 void MainWindow::on_spinBox_2_valueChanged(int arg1)
 {
-    //m_ui->widgetPFD->setHeading(float(arg1));
+    ap->setDesiredHdg((double)arg1);
 }
 
+// toggle Flight Path Marker on/off
 void MainWindow::on_FPMButton_toggled(bool checked)
 {
-    FPM_enabled = checked;   // toggle Flight Path Marker
+    FPM_enabled = checked;
+}
+
+// set desired altitude (feet MSL)
+void MainWindow::on_spinBox_3_valueChanged(int arg1)
+{
+    ap->setDesiredAlt((double)arg1);
+}
+
+// set desired vertical speed (feet per minute)
+void MainWindow::on_spinBox_4_valueChanged(int arg1)
+{
+    ap->setDesiredVS((double)arg1);
+}
+
+// toggle flight director visibility
+void MainWindow::on_FDButton_clicked(bool checked)
+{
+    FDvisible = checked;
+}
+
+// engage lateral mode = Heading
+void MainWindow::on_HDGButton_clicked(bool checked)
+{
+    if (checked) {
+        ap->setLMode(autopilot::Heading);
+        m_ui->LOCButton->setChecked(false);
+    }
+}
+
+// hold current altitude (feet MSL)
+void MainWindow::on_AltHoldButton_clicked(bool checked)
+{
+    if (checked) {
+        int alt = ((int)(altitude/100.0)) * 100;
+        m_ui->spinBox_3->setValue(alt);
+        ap->setDesiredAlt((double)alt);
+        ap->setVMode(autopilot::AltHold);
+        m_ui->VSButton->setChecked(false);
+        m_ui->FLCHButton->setChecked(false);
+        m_ui->GSButton->setChecked(false);
+    }
+}
+
+// engage vertical mode = Vertical Speed (fpm)
+void MainWindow::on_VSButton_clicked(bool checked)
+{
+    if (checked) {
+        int vs = ((int)(climb_rate/100.0)) * 100;
+        m_ui->spinBox_4->setValue(vs);
+        ap->setDesiredVS((double)vs);
+        ap->setVMode(autopilot::VertSpeed);
+        m_ui->AltHoldButton->setChecked(false);
+        m_ui->FLCHButton->setChecked(false);
+        m_ui->GSButton->setChecked(false);
+    }
+}
+
+// engage vertical mode = Speed (control speed with pitch)
+void MainWindow::on_FLCHButton_clicked(bool checked)
+{
+    if (checked) {
+        ap->setVMode(autopilot::Speed);
+        m_ui->VSButton->setChecked(false);
+        m_ui->AltHoldButton->setChecked(false);
+        m_ui->GSButton->setChecked(false);
+    }
+}
+
+// engage vertical mode = ILS glideslope
+void MainWindow::on_GSButton_clicked(bool checked)
+{
+    if (checked) {
+        ap->setVMode(autopilot::ILS);
+        m_ui->VSButton->setChecked(false);
+        m_ui->FLCHButton->setChecked(false);
+        m_ui->AltHoldButton->setChecked(false);
+    }
+}
+
+void MainWindow::UpdateAutopilot()
+{
+    ap_elevator_cmd = ap->updateVMode(dt, pitch, altitude);
+    ap_aileron_cmd = ap->updateLMode(dt, roll, nav->GetMagHdg());
+
+    // Flight Director
+    double Vscale = 0.076923077;  // 13 degrees pitch is full deflection
+    double Hscale = 0.04;         // 25 degrees bank is full deflection
+    if (FDvisible) {
+        if (ap->getVMode() != autopilot::VNone) {
+              m_ui->widgetPFD->setBarH(ap->getFDPitchCmd() * Vscale, true);
+        }
+        if (ap->getLMode() != autopilot::LNone) {
+              m_ui->widgetPFD->setBarV(ap->getFDRollCmd() * Hscale, true);
+        }
+    } else {
+        m_ui->widgetPFD->setBarH(0.0, false);
+        m_ui->widgetPFD->setBarV(0.0, false);
+    }
+
 }

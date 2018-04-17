@@ -21,11 +21,12 @@
 #include <QSettings>
 #include <QButtonGroup>
 #include <QDir>
-#include <viewer.h>
-#include <debugtable.h>
+#include "viewer/viewer.h"
+#include "debug/debugtable.h"
 #include <plib/js.h>
-#include "jsbsim.h"
-#include "navigation.h"
+#include "jsbsim/jsbsim.h"
+#include "nav/navigation.h"
+#include "autopilot/autopilot.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -122,11 +123,14 @@ public:
     bool firstTime;
     double rEllipse;
     bool FPM_enabled;
+    bool FDvisible;
+    double ap_elevator_cmd, ap_aileron_cmd;
 
     quint16 outputPort, inputPort, telnetPort;
     QHostAddress hostAddress;
 
     navigation* nav;
+    autopilot* ap;
 
     // temporary debug variables
     double intercept;
@@ -144,6 +148,7 @@ protected:
 
     void UpdateDisplays(void);
     void UpdateNavigation(void);
+    void UpdateAutopilot(void);
     void keyPressEvent( QKeyEvent * event);
     double toggle( double* number);
     double step( double* number, int numsteps, int direction);
@@ -171,6 +176,23 @@ private slots:
     void on_spinBox_2_valueChanged(int arg1);
 
     void on_FPMButton_toggled(bool checked);
+
+    void on_spinBox_3_valueChanged(int arg1);
+
+    void on_spinBox_4_valueChanged(int arg1);
+
+
+    void on_FDButton_clicked(bool checked);
+
+    void on_HDGButton_clicked(bool checked);
+
+    void on_AltHoldButton_clicked(bool checked);
+
+    void on_VSButton_clicked(bool checked);
+
+    void on_FLCHButton_clicked(bool checked);
+
+    void on_GSButton_clicked(bool checked);
 
 private:
 

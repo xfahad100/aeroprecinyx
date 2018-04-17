@@ -20,7 +20,8 @@ else:win32:CONFIG(debug, debug|release): DEFINES += _DEBUG
 
 #-------------------------------------------------
 
-INCLUDEPATH += ./ ./QFI ./autopilot /usr/local/include/JSBSim /usr/include/plib
+INCLUDEPATH += ./ ./QFI ./autopilot ./debug ./jsbsim ./nav ./viewer \ 
+                /usr/local/include/JSBSim /usr/include/plib
 
 #-------------------------------------------------
 
@@ -35,28 +36,33 @@ HEADERS += \
     QFI/qfi_ADI.h \
     QFI/qfi_PFD.h \
     QFI/WidgetPFD.h \
-    autopilot/PID_v1.h \
-    viewer.h \
-    debugtable.h \
-    navigation.h
+    autopilot/autopilot.h \
+    autopilot/pid.h \
+    debug/debugtable.h \
+    jsbsim/jsbsim.h \
+    nav/navigation.h \
+    viewer/hud.h \
+    viewer/viewer.h \
 
 SOURCES += \
     main.cpp \
     MainWindow.cpp \
-    jsbsim.cpp \
+    autopilot/autopilot.cpp \
+    autopilot/pid.cpp \
+    debug/debugtable.cpp \
+    jsbsim/jsbsim.cpp \
+    nav/navigation.cpp \
     QFI/LayoutSquare.cpp \
     QFI/qfi_PFD.cpp \
     QFI/WidgetPFD.cpp \
-    autopilot/PID_v1.cpp \
-    viewer.cpp \
-    debugtable.cpp \
-    navigation.cpp
+    viewer/hud.cpp \
+    viewer/viewer.cpp \
 
 FORMS += \
     MainWindow.ui \
     QFI/WidgetPFD.ui \
-    viewer.ui \
-    debugtable.ui
+    debug/debugtable.ui \
+    viewer/viewer.ui \
 
 RESOURCES += \
     qtjsbsim.qrc \
@@ -65,3 +71,41 @@ RESOURCES += \
 
 OTHER_FILES += \
     qtjsbsim.ini
+
+SUBDIRS += \
+    qtjsbsim.pro
+
+DISTFILES += \
+    images/hud/horizon.png \
+    images/hud/hud_base.png \
+    images/dkgreen.png \
+    images/green.png \
+    images/pfd/pfd.svg \
+    images/pfd/pfd_adi_back.svg \
+    images/pfd/pfd_adi_barh.svg \
+    images/pfd/pfd_adi_barv.svg \
+    images/pfd/pfd_adi_doth.svg \
+    images/pfd/pfd_adi_dotv.svg \
+    images/pfd/pfd_adi_ladd.svg \
+    images/pfd/pfd_adi_mark.svg \
+    images/pfd/pfd_adi_mask.svg \
+    images/pfd/pfd_adi_path.svg \
+    images/pfd/pfd_adi_roll.svg \
+    images/pfd/pfd_adi_slip.svg \
+    images/pfd/pfd_adi_turn.svg \
+    images/pfd/pfd_alt_back.svg \
+    images/pfd/pfd_alt_frame.svg \
+    images/pfd/pfd_alt_ground.svg \
+    images/pfd/pfd_alt_scale.svg \
+    images/pfd/pfd_asi_back.svg \
+    images/pfd/pfd_asi_frame.svg \
+    images/pfd/pfd_asi_scale.svg \
+    images/pfd/pfd_back.svg \
+    images/pfd/pfd_hsi_back.svg \
+    images/pfd/pfd_hsi_face.svg \
+    images/pfd/pfd_hsi_marks.svg \
+    images/pfd/pfd_mask.svg \
+    images/pfd/pfd_vsi_arrow.svg \
+    images/pfd/pfd_vsi_scale.svg \
+    qtjsbsim.ini \
+    QFI/CMakeLists.txt

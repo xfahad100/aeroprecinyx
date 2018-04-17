@@ -2,24 +2,29 @@
 ENABLE_LANGUAGE(CXX)
 
 SET(SRC_OBJS
-     jsbsim.cpp
+     jsbsim/jsbsim.cpp
      main.cpp
      MainWindow.cpp
-     viewer.cpp
-     debugtable.cpp
-     navigation.cpp
-     autopilot/PID_v1.cpp
+     viewer/viewer.cpp
+     viewer/hud.cpp
+     debug/debugtable.cpp
+     nav/navigation.cpp
+     autopilot/pid.cpp
+     autopilot/autopilot.cpp
      QFI/LayoutSquare.cpp
      QFI/qfi_PFD.cpp
      QFI/WidgetPFD.cpp
    )
 
 SET(SRC_HDRS
-     jsbsim.h
+     jsbsim/jsbsim.h
      MainWindow.h
-     viewer.h
-     debugtable.h
-     navigation.h
+     viewer/viewer.h
+     viewer/hud.h
+     debug/debugtable.h
+     nav/navigation.h
+     autopilot/pid.h
+     autopilot/autopilot.h
      QFI/LayoutSquare.h
      QFI/qfi_ADI.h
      QFI/qfi_PFD.h
@@ -28,8 +33,8 @@ SET(SRC_HDRS
 
 SET(GUI_FILES
      MainWindow.ui
-     viewer.ui
-     debugtable.ui
+     viewer/viewer.ui
+     debug/debugtable.ui
      QFI/WidgetPFD.ui
    )
 
