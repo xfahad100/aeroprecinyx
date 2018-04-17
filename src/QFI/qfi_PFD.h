@@ -187,6 +187,18 @@ public:
         m_vsi->setClimbRate( climbRate );
     }
 
+    /** @param ident (4-letter text) */
+    inline void setIdent( QString ident, bool visible = false )
+    {
+        m_ils->setIdentifier( ident, visible );
+    }
+
+    /** @param distance [nautical miles] */
+    inline void setDistance( float dist, bool visible = false )
+    {
+        m_ils->setDistance( dist, visible );
+    }
+
 protected:
 
     void resizeEvent( QResizeEvent * event );
@@ -557,6 +569,46 @@ private:
         void updateVSI();
     };
 
+    class ILS
+    {
+    public:
+
+        ILS( QGraphicsScene * scene );
+        void init( float scaleX, float scaleY );
+        void update( float scaleX, float scaleY );
+        void setIdentifier( QString ident, bool visible );
+        void setDistance( float dist, bool visible );
+
+    private:
+
+        QGraphicsScene * m_scene;
+
+        QGraphicsTextItem  * m_itemIdentText;
+        QGraphicsTextItem  * m_itemDistText;
+
+        float m_distance;
+        QString m_identifier;
+
+        bool m_Dist_Visible;
+        bool m_Ident_Visible;
+
+        float m_scaleX;
+        float m_scaleY;
+
+        QPointF m_originalIdentPos;
+        QPointF m_originalDistPos;
+
+        const int m_identZ;
+        const int m_distZ;
+
+        QColor m_textColor;
+        QFont  m_identFont;
+        QFont  m_distFont;
+
+        void reset();
+        void updateILS();
+    };
+
     QGraphicsScene * m_scene;
 
     ADI * m_adi;
@@ -564,6 +616,7 @@ private:
     ASI * m_asi;
     HSI * m_hsi;
     VSI * m_vsi;
+    ILS * m_ils;
 
     QGraphicsSvgItem * m_itemBack;
     QGraphicsSvgItem * m_itemMask;

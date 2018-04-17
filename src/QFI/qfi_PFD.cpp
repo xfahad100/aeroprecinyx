@@ -78,6 +78,7 @@ qfi_PFD::qfi_PFD( QWidget * parent ) :
     m_asi ( 0 ),
     m_hsi ( 0 ),
     m_vsi ( 0 ),
+    m_ils ( 0 ),
 
     m_itemBack ( 0 ),
     m_itemMask ( 0 ),
@@ -103,6 +104,7 @@ qfi_PFD::qfi_PFD( QWidget * parent ) :
     m_asi = new ASI( m_scene );
     m_hsi = new HSI( m_scene );
     m_vsi = new VSI( m_scene );
+    m_ils = new ILS( m_scene );
 
     init();
 }
@@ -125,6 +127,7 @@ qfi_PFD::~qfi_PFD()
     if ( m_asi ) delete m_asi; m_asi = 0;
     if ( m_hsi ) delete m_hsi; m_hsi = 0;
     if ( m_vsi ) delete m_vsi; m_vsi = 0;
+    if ( m_ils ) delete m_ils; m_ils = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -169,6 +172,7 @@ void qfi_PFD::init()
     m_asi->init( m_scaleX, m_scaleY );
     m_hsi->init( m_scaleX, m_scaleY );
     m_vsi->init( m_scaleX, m_scaleY );
+    m_ils->init( m_scaleX, m_scaleY );
 
     m_itemBack = new QGraphicsSvgItem( ":/qfi/images/pfd/pfd_back.svg" );
     m_itemBack->setCacheMode( QGraphicsItem::NoCache );
@@ -207,6 +211,7 @@ void qfi_PFD::updateView()
     m_asi->update( m_scaleX, m_scaleY );
     m_hsi->update( m_scaleX, m_scaleY );
     m_vsi->update( m_scaleX, m_scaleY );
+    m_ils->update( m_scaleX, m_scaleY );
 
     m_scene->update();
 }
@@ -1888,4 +1893,121 @@ void qfi_PFD::VSI::updateVSI()
     m_arrowDeltaY_new = m_scaleY * arrowDeltaY;
 
     m_itemArrow->moveBy( 0.0f, m_arrowDeltaY_old - m_arrowDeltaY_new );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+qfi_PFD::ILS::ILS( QGraphicsScene * scene ) :
+    m_scene ( scene ),
+
+    m_itemIdentText ( 0 ),
+    m_itemDistText  ( 0 ),
+
+    m_distance ( 0.0f ),
+    m_identifier ( "" ),
+
+    m_Dist_Visible ( false ),
+    m_Ident_Visible ( false ),
+
+    m_textColor ( 255, 61, 255 ),
+
+    m_scaleX ( 1.0f ),
+    m_scaleY ( 1.0f ),
+
+    m_originalIdentPos (  20.0f , 265.0f ),
+    m_originalDistPos  (  20.0f , 285.0f ),
+
+    m_identZ  ( 120 ),
+    m_distZ   ( 120 )
+{
+    m_identFont.setFamily( "Courier" );
+    m_identFont.setPointSizeF( 12.0 );
+    m_identFont.setStretch( QFont::Condensed );
+    m_identFont.setWeight( QFont::Bold );
+
+    m_distFont.setFamily( "Courier" );
+    m_distFont.setPointSizeF( 12.0 );
+    m_distFont.setStretch( QFont::Condensed );
+    m_distFont.setWeight( QFont::Bold );
+
+    reset();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void qfi_PFD::ILS::reset()
+{
+    m_itemIdentText = 0;
+    m_itemDistText  = 0;
+
+    m_distance   = 0.0;
+    m_identifier =  "";
+
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void qfi_PFD::ILS::updateILS()
+{
+    m_itemIdentText->setPlainText( m_identifier );
+    m_itemDistText->setPlainText(QString("%1").arg(m_distance, 3, 'f', 1) );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void qfi_PFD::ILS::setIdentifier( QString ident, bool visible )
+{
+    m_identifier = ident;
+    m_itemIdentText->setVisible( visible );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void qfi_PFD::ILS::setDistance( float dist, bool visible )
+{
+    m_distance = abs( dist );
+    m_itemDistText->setVisible( visible );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void qfi_PFD::ILS::update( float scaleX, float scaleY )
+{
+    m_scaleX = scaleX;
+    m_scaleY = scaleY;
+
+    updateILS();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void qfi_PFD::ILS::init( float scaleX, float scaleY )
+{
+    m_scaleX = scaleX;
+    m_scaleY = scaleY;
+
+    reset();
+
+    m_itemIdentText = new QGraphicsTextItem( QString( "999" ) );
+    m_itemIdentText->setCacheMode( QGraphicsItem::NoCache );
+    m_itemIdentText->setZValue( m_identZ );
+    m_itemIdentText->setDefaultTextColor( m_textColor );
+    m_itemIdentText->setFont( m_identFont );
+    m_itemIdentText->setTransform( QTransform::fromScale( m_scaleX, m_scaleY ), true );
+    m_itemIdentText->moveBy( m_scaleX * ( m_originalIdentPos.x() - m_itemIdentText->boundingRect().width()  / 2.0f ),
+                         m_scaleY * ( m_originalIdentPos.y() - m_itemIdentText->boundingRect().height() / 2.0f ) );
+    m_scene->addItem( m_itemIdentText );
+
+    m_itemDistText = new QGraphicsTextItem( QString( "999" ) );
+    m_itemDistText->setCacheMode( QGraphicsItem::NoCache );
+    m_itemDistText->setZValue( m_distZ );
+    m_itemDistText->setDefaultTextColor( m_textColor );
+    m_itemDistText->setFont( m_distFont );
+    m_itemDistText->setTransform( QTransform::fromScale( m_scaleX, m_scaleY ), true );
+    m_itemDistText->moveBy( m_scaleX * ( m_originalDistPos.x() - m_itemDistText->boundingRect().width()  / 2.0f ),
+                         m_scaleY * ( m_originalDistPos.y() - m_itemDistText->boundingRect().height() / 2.0f ) );
+    m_scene->addItem( m_itemDistText );
+
+    update( scaleX, scaleY );
 }

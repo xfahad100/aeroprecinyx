@@ -32,6 +32,7 @@ double navigation::GetInterceptAngle() {return interceptAngle;}
 double navigation::GetDistance() {return distance;}
 int navigation::GetSelectedHdg() {return selectedHDG;}
 double navigation::GetILSCourse() {return ILSCourse;}
+QString navigation::GetIdentifier() {return QString("ILAX");}
 
 
 ///////////////////////////////////////////////////////////////////////////////

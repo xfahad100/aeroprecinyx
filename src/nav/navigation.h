@@ -2,6 +2,7 @@
 #define NAVIGATION_H
 
 #include "math.h"
+#include <QString>
 
 struct GeoLoc {
     double lat;  // degrees -90 to 90
@@ -40,6 +41,7 @@ public:
     double GetDistance();
     int    GetSelectedHdg();
     double GetILSCourse();
+    QString GetIdentifier();
 
     double d2r, r2d, ft2nm;
 

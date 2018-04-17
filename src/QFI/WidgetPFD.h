@@ -155,6 +155,16 @@ public:
         m_pfd->setClimbRate( climbRate );
     }
 
+    inline void setIdentifier( QString ident, bool isVisible )
+    {
+        m_pfd->setIdent( ident, isVisible );
+    }
+
+    inline void setDistance( float dist, bool isVisible )
+    {
+        m_pfd->setDistance( dist, isVisible );
+    }
+
 private:
 
     Ui::WidgetPFD * m_ui;

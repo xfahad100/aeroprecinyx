@@ -728,14 +728,18 @@ void MainWindow::UpdateNavigation()
   nav->SetTrueHeading(yaw);
   nav->Update();
 
-  // Display ILS data on the PFD
+  // Display ILS raw data on the PFD
   if (m_ui->ILSButton->isChecked()) {
     int rev = (abs(nav->GetILSCourse()-nav->GetMagHdg()) > 90.0) ? -1:1;
     m_ui->widgetPFD->setDotH(rev * -nav->GetCourseErrorDeg()*0.4, true);
     m_ui->widgetPFD->setDotV(-nav->GetGSErrorDeg(), true);
+    m_ui->widgetPFD->setIdentifier(nav->GetIdentifier(), true);
+    m_ui->widgetPFD->setDistance((float)nav->GetDistance(), true);
   } else {
     m_ui->widgetPFD->setDotH(0.0, false);
     m_ui->widgetPFD->setDotV(0.0, false);
+    m_ui->widgetPFD->setIdentifier(QString(""), false);
+    m_ui->widgetPFD->setDistance(0.0, false);
   }
 
   // debug
