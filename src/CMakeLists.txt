@@ -11,7 +11,7 @@ SET(SRC_OBJS
      nav/navigation.cpp
      autopilot/pid.cpp
      autopilot/autopilot.cpp
-     joystick/joystick.cpp
+     input/joystick.cpp
      QFI/LayoutSquare.cpp
      QFI/qfi_PFD.cpp
      QFI/WidgetPFD.cpp
@@ -26,7 +26,7 @@ SET(SRC_HDRS
      nav/navigation.h
      autopilot/pid.h
      autopilot/autopilot.h
-     joystick/joystick.h
+     input/joystick.h
      QFI/LayoutSquare.h
      QFI/qfi_ADI.h
      QFI/qfi_PFD.h
