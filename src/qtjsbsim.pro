@@ -31,7 +31,6 @@ LIBS += -L/usr/lib -lplibjs -lplibul
 
 HEADERS += \
     MainWindow.h \
-    jsbsim.h \
     QFI/LayoutSquare.h \
     QFI/qfi_ADI.h \
     QFI/qfi_PFD.h \
@@ -43,6 +42,19 @@ HEADERS += \
     nav/navigation.h \
     viewer/hud.h \
     viewer/viewer.h \
+    autopilot/autopilot.h \
+    autopilot/pid.h \
+    debug/debugtable.h \
+    jsbsim/jsbsim.h \
+    nav/navigation.h \
+    QFI/LayoutSquare.h \
+    QFI/qfi_ADI.h \
+    QFI/qfi_PFD.h \
+    QFI/WidgetPFD.h \
+    viewer/hud.h \
+    viewer/viewer.h \
+    MainWindow.h \
+    input/joystick.h
 
 SOURCES += \
     main.cpp \
@@ -57,6 +69,19 @@ SOURCES += \
     QFI/WidgetPFD.cpp \
     viewer/hud.cpp \
     viewer/viewer.cpp \
+    autopilot/autopilot.cpp \
+    autopilot/pid.cpp \
+    debug/debugtable.cpp \
+    jsbsim/jsbsim.cpp \
+    nav/navigation.cpp \
+    QFI/LayoutSquare.cpp \
+    QFI/qfi_PFD.cpp \
+    QFI/WidgetPFD.cpp \
+    viewer/hud.cpp \
+    viewer/viewer.cpp \
+    main.cpp \
+    MainWindow.cpp \
+    input/joystick.cpp
 
 FORMS += \
     MainWindow.ui \
@@ -108,4 +133,7 @@ DISTFILES += \
     images/pfd/pfd_vsi_arrow.svg \
     images/pfd/pfd_vsi_scale.svg \
     qtjsbsim.ini \
-    QFI/CMakeLists.txt
+    QFI/CMakeLists.txt \
+    images/pause.png \
+    images/stop.png \
+    images/help.png

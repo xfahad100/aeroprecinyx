@@ -23,6 +23,7 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}"
   "${CMAKE_SOURCE_DIR}/src/viewer"
   "${CMAKE_SOURCE_DIR}/src/debug"
   "${CMAKE_SOURCE_DIR}/src/jsbsim"
+  "${CMAKE_SOURCE_DIR}/src/joystick"
   ${PLIB_INCLUDE_DIR}
   )
 

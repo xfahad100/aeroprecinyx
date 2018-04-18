@@ -126,29 +126,16 @@ MainWindow::MainWindow( QWidget * parent ) :
 
 
     // Set up joystick
-    joystick = new jsJoystick();
-    jsInit();
+    joystick = new Joystick();
+    joystick->Init();
     m_ui->label_joystick->setText(joystick->getName());
-    axes = joystick->getNumAxes();
-    ax = new float[16];
-    NumButtons = joystick->getNumButtons();
-    b = new int[32];
-    deadband = new float[3];
-    for (int i=0; i<16; i++) {
-       ax[i] = -1.0;
-    }
-    for (int i=0; i<32; i++) {
-       b[i] = 0.0;
-    }
-    elevator_axis = aileron_axis = rudder_axis = -1;  // -1 signifies not assigned yet
-    elevator_trim_axis = aileron_trim_axis = throttle_axis = -1;
-    deadband[0] = deadband[1] = deadband[2] = 0.0;
-
     if (joystick->notWorking()) {
         m_ui->console->appendPlainText("Joystick not found!");
     } else {
-        m_ui->console->appendPlainText("Joystick axes = " + QString::number(axes));
-        m_ui->console->appendPlainText("Joystick buttons = " + QString::number(NumButtons));
+        m_ui->console->appendPlainText("Joystick axes = " +
+                                       QString::number(joystick->getNumAxes()));
+        m_ui->console->appendPlainText("Joystick buttons = " +
+                                       QString::number(joystick->getNumButtons()));
     }
 
     // Create a navigation instance
@@ -193,9 +180,6 @@ MainWindow::~MainWindow()
     delete timeStamp;
     delete UDPOutTimer;
     delete timer;
-    delete[] ax;
-    delete[] b;
-    delete[] deadband;
     delete joystick;
     delete JSBSim;
     if (jsbsimDataSocket) delete jsbsimDataSocket;
@@ -225,7 +209,6 @@ void MainWindow::MainLoop()
     }
 
     get_joystick_inputs();
-    update_joystick_display();
     getJSBSimData();
     UpdateNavigation();
     UpdateAutopilot();
@@ -240,35 +223,23 @@ void MainWindow::MainLoop()
 
 ////////////////////////////////////////////////////////////////////////////////
 // Reads the joystick state and assigns the values to aircraft control inputs.
-// Presently, the axis assignments are hard-coded, and the max number of axes
-// supported is 16.  Pitch trim rate is a normalized value (0-1) per second, so
+// The max number of axes supported is 16.
+// Pitch trim rate is a normalized value (0-1) per second, so
 // for example, 0.2 results in five seconds to go from 0 to 1.
 //
 void MainWindow::get_joystick_inputs(void)
 {
     if (joystick->notWorking()) return;
+    joystick->Read();
 
-    joystick->read(&buttons, ax);
+    aileron  = joystick->getAileron();
+    elevator = joystick->getElevator();
+    rudder   = joystick->getRudder();
+    throttle = joystick->getThrottle();
+    aileron_trim += joystick->getAileronTrim() * dt/5.0;
+    pitch_trim -= joystick->getElevatorTrim() * dt * pitch_trim_rate;
 
-    // first check if that axis has been assigned
-    if (aileron_axis >= 0) aileron = ax[aileron_axis];
-    if (elevator_axis >= 0) elevator = -ax[elevator_axis];
-    if (rudder_axis >= 0) rudder = -ax[rudder_axis];
-    if (throttle_axis >= 0) throttle = (ax[throttle_axis]-1.0)/-2.0;
-    if (aileron_trim_axis >= 0) aileron_trim += ax[aileron_trim_axis] * dt/5.0;
-    if (elevator_trim_axis >= 0) {
-          pitch_trim -= ax[elevator_trim_axis] * dt * pitch_trim_rate;
-    }
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Updates the UI joystick display
-//
-void MainWindow::update_joystick_display(void)
-{
-    if (joystick->notWorking()) return;
-
+    // update the joystick display
     m_ui->aileronSlider->setValue(aileron*100);
     m_ui->aileronLabel->setText(QString::number(aileron, 'f', 3));
     m_ui->elevatorSlider->setValue(elevator*100);
@@ -278,76 +249,19 @@ void MainWindow::update_joystick_display(void)
     m_ui->throttleSlider->setValue(throttle*100);
     m_ui->throttleLabel->setText(QString::number(throttle, 'f', 3));
 
-    for (uint i=0; i<(uint)NumButtons; i++){
-        b[i] = buttons & 1;
-        buttons = buttons >> 1;
-    }
-
-    if (b[0]){
-           m_ui->jsButton_0->setChecked(true);
-    }else {
-           m_ui->jsButton_0->setChecked(false);
-    }
-    if (b[1]){
-           m_ui->jsButton_1->setChecked(true);
-     }else {
-           m_ui->jsButton_1->setChecked(false);
-    }
-    if (b[2]){
-           m_ui->jsButton_2->setChecked(true);
-     }else {
-           m_ui->jsButton_2->setChecked(false);
-    }
-    if (b[3]){
-           m_ui->jsButton_3->setChecked(true);
-     }else {
-           m_ui->jsButton_3->setChecked(false);
-    }
-    if (b[4]){
-           m_ui->jsButton_4->setChecked(true);
-     }else {
-           m_ui->jsButton_4->setChecked(false);
-    }
-    if (b[5]){
-           m_ui->jsButton_5->setChecked(true);
-     }else {
-           m_ui->jsButton_5->setChecked(false);
-    }
-    if (b[6]){
-           m_ui->jsButton_6->setChecked(true);
-     }else {
-           m_ui->jsButton_6->setChecked(false);
-    }
-    if (b[7]){
-           m_ui->jsButton_7->setChecked(true);
-     }else {
-           m_ui->jsButton_7->setChecked(false);
-    }
-    if (b[8]){
-           m_ui->jsButton_8->setChecked(true);
-     }else {
-           m_ui->jsButton_8->setChecked(false);
-    }
-    if (b[9]){
-           m_ui->jsButton_9->setChecked(true);
-     }else {
-           m_ui->jsButton_9->setChecked(false);
-    }
-    if (b[10]){
-           m_ui->jsButton_10->setChecked(true);
-     }else {
-           m_ui->jsButton_10->setChecked(false);
-    }
-    if (b[11]){
-           m_ui->jsButton_11->setChecked(true);
-     }else {
-           m_ui->jsButton_11->setChecked(false);
-    }
-    if (b[12]){
-           m_ui->jsButton_12->setChecked(true);
-     }else {
-           m_ui->jsButton_12->setChecked(false);
-    }
+    m_ui->jsButton_0->setChecked(joystick->getButtonState(0));
+    m_ui->jsButton_1->setChecked(joystick->getButtonState(1));
+    m_ui->jsButton_2->setChecked(joystick->getButtonState(2));
+    m_ui->jsButton_3->setChecked(joystick->getButtonState(3));
+    m_ui->jsButton_4->setChecked(joystick->getButtonState(4));
+    m_ui->jsButton_5->setChecked(joystick->getButtonState(5));
+    m_ui->jsButton_6->setChecked(joystick->getButtonState(6));
+    m_ui->jsButton_7->setChecked(joystick->getButtonState(7));
+    m_ui->jsButton_8->setChecked(joystick->getButtonState(8));
+    m_ui->jsButton_9->setChecked(joystick->getButtonState(9));
+    m_ui->jsButton_10->setChecked(joystick->getButtonState(10));
+    m_ui->jsButton_11->setChecked(joystick->getButtonState(11));
+    m_ui->jsButton_12->setChecked(joystick->getButtonState(12));
 
 }
 
@@ -889,21 +803,16 @@ void MainWindow::readSettings(void) {
     pitch_trim =      settings->value("aircraft/pitch-trim").toDouble();
     pitch_trim_rate = settings->value("aircraft/pitch-trim-rate").toFloat();
 
-    elevator_axis =   settings->value("joystick/elevator-axis").toInt();
-    aileron_axis =    settings->value("joystick/aileron-axis").toInt();
-    rudder_axis =     settings->value("joystick/rudder-axis").toInt();
-    throttle_axis =   settings->value("joystick/throttle-axis").toInt();
-    aileron_trim_axis =  settings->value("joystick/aileron-trim-axis").toInt();
-    elevator_trim_axis = settings->value("joystick/elevator-trim-axis").toInt();
-    deadband[0] = settings->value("joystick/axis-0-deadband").toFloat();
-    deadband[1] = settings->value("joystick/axis-1-deadband").toFloat();
-    deadband[2] = settings->value("joystick/axis-2-deadband").toFloat();
-
-    if (!joystick->notWorking()) {
-        if (axes>0) joystick->setDeadBand(0, deadband[0]);
-        if (axes>1) joystick->setDeadBand(1, deadband[1]);
-        if (axes>2) joystick->setDeadBand(2, deadband[2]);
-    }
+    joystick->setElevatorAxis( settings->value("joystick/elevator-axis").toInt() );
+    joystick->setAileronAxis( settings->value("joystick/aileron-axis").toInt() );
+    joystick->setRudderAxis( settings->value("joystick/rudder-axis").toInt() );
+    joystick->setThrottleAxis( settings->value("joystick/throttle-axis").toInt() );
+    joystick->setAileronTrimAxis( settings->value("joystick/aileron-trim-axis").toInt() );
+    joystick->setElevatorTrimAxis( settings->value("joystick/elevator-trim-axis").toInt() );
+    joystick->setDeadbands(
+                   settings->value("joystick/axis-0-deadband").toFloat(),
+                   settings->value("joystick/axis-1-deadband").toFloat(),
+                   settings->value("joystick/axis-2-deadband").toFloat() );
 
     localURL  = QUrl(settings->value("viewer/localURL").toString());
     remoteURL = QUrl(settings->value("viewer/remoteURL").toString());
@@ -1249,8 +1158,10 @@ void MainWindow::on_GSButton_clicked(bool checked)
 
 void MainWindow::UpdateAutopilot()
 {
-    ap_elevator_cmd = ap->updateVMode(dt, pitch, altitude);
-    ap_aileron_cmd = ap->updateLMode(dt, roll, nav->GetMagHdg());
+    double _dt = 1.0 / framerate;
+
+    ap_elevator_cmd = ap->updateVMode(_dt, pitch, altitude);
+    ap_aileron_cmd = ap->updateLMode(_dt, roll, nav->GetMagHdg());
 
     // Flight Director
     double Vscale = 0.076923077;  // 13 degrees pitch is full deflection

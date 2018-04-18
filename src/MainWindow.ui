@@ -253,7 +253,17 @@
        <enum>Qt::TabFocus</enum>
       </property>
       <property name="text">
-       <string>Help</string>
+       <string> Help</string>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>images/help.png</normaloff>images/help.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>18</width>
+        <height>18</height>
+       </size>
       </property>
      </widget>
      <widget class="QPushButton" name="QuitButton">

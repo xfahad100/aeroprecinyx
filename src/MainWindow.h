@@ -23,10 +23,10 @@
 #include <QDir>
 #include "viewer/viewer.h"
 #include "debug/debugtable.h"
-#include <plib/js.h>
 #include "jsbsim/jsbsim.h"
 #include "nav/navigation.h"
 #include "autopilot/autopilot.h"
+#include "input/joystick.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,17 +55,7 @@ public:
     QString iniPath;
 
     // Joystick
-    jsJoystick* joystick;
-    int axes;              // the number of axes on this joystick
-    float* ax;             // an array of axis values
-    int NumButtons;        // the number of buttons on this joystick
-    int buttons;           // contains all button values bitwise
-    int* b;                // an array of button values
-    float* deadband;
-    int elevator_axis, aileron_axis, rudder_axis, throttle_axis;
-    int aileron_trim_axis, elevator_trim_axis;
     void get_joystick_inputs(void);
-    void update_joystick_display(void);
 
     // JSBSim
     jsbsim* JSBSim;
@@ -172,26 +162,15 @@ private slots:
     void on_helpButton_clicked();
     void on_PauseJSBSimButton_clicked();
     void on_ILSButton_clicked();
-
     void on_spinBox_2_valueChanged(int arg1);
-
     void on_FPMButton_toggled(bool checked);
-
     void on_spinBox_3_valueChanged(int arg1);
-
     void on_spinBox_4_valueChanged(int arg1);
-
-
     void on_FDButton_clicked(bool checked);
-
     void on_HDGButton_clicked(bool checked);
-
     void on_AltHoldButton_clicked(bool checked);
-
     void on_VSButton_clicked(bool checked);
-
     void on_FLCHButton_clicked(bool checked);
-
     void on_GSButton_clicked(bool checked);
 
 private:
@@ -212,6 +191,7 @@ private:
     QButtonGroup* gearCmd;
     QButtonGroup* sbCmd;
     debugTable* debug;
+    Joystick* joystick;
 
     void readSettings(void);
     void writeSettings(void);
