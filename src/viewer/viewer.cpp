@@ -39,7 +39,7 @@ void Viewer::load(QUrl url)
 }
 
 void Viewer::updateData(double lat, double lon, double alt,
-                        double pitch, double roll, double yaw)
+                        double pitch, double roll, double yaw, double alpha)
 {
     // this data is shared to the Cesium viewer
     Aircraft->setLat(lat);
@@ -48,6 +48,12 @@ void Viewer::updateData(double lat, double lon, double alt,
     Aircraft->setPitch(pitch);
     Aircraft->setRoll(roll);
     Aircraft->setHdgTrue(yaw);
+
+    // update the HUD
+    hud->setPitch(pitch);
+    hud->setRoll(roll);
+    hud->setAlpha(alpha);
+    hud->update();
 
 }
 

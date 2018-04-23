@@ -69,7 +69,8 @@ public:
                     double alt,    // altitude MSL in feet
                     double pitch,  // degrees
                     double roll,   // degrees
-                    double yaw);   // degrees
+                    double yaw,    // degrees
+                    double alpha);   // degrees
     aircraft* Aircraft;
     void setCameraBias( int horizontal, int vertical);
 

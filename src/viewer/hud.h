@@ -6,6 +6,7 @@
 #include <QGraphicsView>
 #include <QPixmap>
 #include <QGraphicsPixmapItem>
+#include <QPoint>
 
 class HUD
 {
@@ -16,14 +17,27 @@ public:
     bool getVisible();
     void show();
     void hide();
+    void update();
+    inline void setPitch( double p ) { pitch = (float)p; }
+    void setRoll( double r ) { roll = (float)r; }
+    void setAlpha( double a ) { alpha = (float)a; }
 
 private:
 
     QGraphicsScene* hudScene;
     QGraphicsView* hudView;
-    QPixmap* hudBasePixmap;
+    QPixmap hudBasePixmap;
+    QPixmap horizonPixmap;
+    QPixmap fpmPixmap;
+    QGraphicsPixmapItem* horizonItem;
+    QGraphicsPixmapItem* fpmItem;
+    QPoint horizonStartPos;
+    QPoint fpmStartPos;
     bool visible;
-
+    float pitch;
+    float roll;
+    float alpha;
+    float ppd;
 
 };
 
