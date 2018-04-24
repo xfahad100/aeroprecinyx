@@ -20,7 +20,7 @@ else:win32:CONFIG(debug, debug|release): DEFINES += _DEBUG
 
 #-------------------------------------------------
 
-INCLUDEPATH += ./ ./QFI ./autopilot ./debug ./jsbsim ./nav ./viewer \ 
+INCLUDEPATH += ./ ./QFI ./autopilot ./debug ./jsbsim ./nav ./viewer ./input \
                 /usr/local/include/JSBSim /usr/include/plib
 
 #-------------------------------------------------
@@ -42,18 +42,6 @@ HEADERS += \
     nav/navigation.h \
     viewer/hud.h \
     viewer/viewer.h \
-    autopilot/autopilot.h \
-    autopilot/pid.h \
-    debug/debugtable.h \
-    jsbsim/jsbsim.h \
-    nav/navigation.h \
-    QFI/LayoutSquare.h \
-    QFI/qfi_ADI.h \
-    QFI/qfi_PFD.h \
-    QFI/WidgetPFD.h \
-    viewer/hud.h \
-    viewer/viewer.h \
-    MainWindow.h \
     input/joystick.h
 
 SOURCES += \
@@ -69,18 +57,6 @@ SOURCES += \
     QFI/WidgetPFD.cpp \
     viewer/hud.cpp \
     viewer/viewer.cpp \
-    autopilot/autopilot.cpp \
-    autopilot/pid.cpp \
-    debug/debugtable.cpp \
-    jsbsim/jsbsim.cpp \
-    nav/navigation.cpp \
-    QFI/LayoutSquare.cpp \
-    QFI/qfi_PFD.cpp \
-    QFI/WidgetPFD.cpp \
-    viewer/hud.cpp \
-    viewer/viewer.cpp \
-    main.cpp \
-    MainWindow.cpp \
     input/joystick.cpp
 
 FORMS += \
