@@ -215,7 +215,8 @@ void MainWindow::MainLoop()
     UpdateDisplays();
     doDebugCalculations();
     debug->update();
-    viewer->updateData(latitude, longitude, altitude, pitch, roll, yaw, aoa);
+    viewer->updateData(latitude, longitude, altitude, pitch, roll, yaw);
+    viewer->updateHUD(aoa, mach, gs, climb_rate);
     count++;
 }
 

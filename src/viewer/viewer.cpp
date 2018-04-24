@@ -20,7 +20,7 @@ Viewer::Viewer(QWidget *parent) :
     // can't share the C++ object until the javascript environment is ready for it
     connect(frame, &QWebFrame::javaScriptWindowObjectCleared, this, &Viewer::shareAircraftObject);
 
-    // HUD
+    // create the Heads Up Display
     hud = new HUD(ui->HUDView);
     hud->setVisible(false);
 
@@ -28,9 +28,9 @@ Viewer::Viewer(QWidget *parent) :
 
 Viewer::~Viewer()
 {
-    delete hud;
     delete ui;
     delete Aircraft;
+    delete hud;
 }
 
 void Viewer::load(QUrl url)
@@ -39,7 +39,7 @@ void Viewer::load(QUrl url)
 }
 
 void Viewer::updateData(double lat, double lon, double alt,
-                        double pitch, double roll, double yaw, double alpha)
+                        double pitch, double roll, double yaw)
 {
     // this data is shared to the Cesium viewer
     Aircraft->setLat(lat);
@@ -49,12 +49,20 @@ void Viewer::updateData(double lat, double lon, double alt,
     Aircraft->setRoll(roll);
     Aircraft->setHdgTrue(yaw);
 
-    // update the HUD
+    // share this data with the HUD
     hud->setPitch(pitch);
+    hud->setAltitude(alt);
     hud->setRoll(roll);
-    hud->setAlpha(alpha);
-    hud->update();
 
+}
+
+void Viewer::updateHUD(double alpha, double mach, double gs, double vs)
+{
+    hud->setAlpha(alpha);
+    hud->setMach(mach);
+    hud->setGroundSpeed(gs);
+    hud->setVerticalSpeedFPM(vs);
+    hud->update();
 }
 
 void Viewer::shareAircraftObject()

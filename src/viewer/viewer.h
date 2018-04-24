@@ -64,15 +64,21 @@ public:
     QWebFrame* frame;
     void load(QUrl url);
     void shareAircraftObject();
+
     void updateData(double lat,    // geocentric latitude in degrees
                     double lon,    // geocentric longitude in degrees
                     double alt,    // altitude MSL in feet
                     double pitch,  // degrees
                     double roll,   // degrees
-                    double yaw,    // degrees
-                    double alpha);   // degrees
+                    double yaw);   // degrees
+
+    void updateHUD(double alpha,   // degrees
+                   double mach,    // mach number
+                   double gs,      // altitude [feet above WGS-84 datum]
+                   double vs);     // vertical speed [feet/minute]
+
     aircraft* Aircraft;
-    void setCameraBias( int horizontal, int vertical);
+    void setCameraBias(int horizontal, int vertical);
 
 private slots:
     void on_CloseButton_clicked();   // close the viewer
