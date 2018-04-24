@@ -7,6 +7,7 @@ HUD::HUD( QGraphicsView* gv)
     visible = false;
     pitch = roll = alpha = 0.0;
     ppd = 9.6;       // pixels per degree of pitch
+    DEG2RAD = 0.01745329251;
 
     hudBasePixmap.load(":/images/hud/hud_base.png");
     hudScene->addPixmap(hudBasePixmap);
@@ -51,11 +52,13 @@ HUD::~HUD()
 
 void HUD::update()
 {
+   double cosRoll = cos(roll * DEG2RAD);
+
    // horizon line
    QPoint pos = horizonStartPos;
-   horizonItem->setRotation(-roll);
-   pos.setY(horizonStartPos.y() + (int)(pitch * ppd));
+   pos.setY(horizonStartPos.y() + (int)((pitch / cosRoll) * ppd));
    horizonItem->setPos(pos);
+   horizonItem->setRotation(-roll);
 
    // flight path marker
    QPoint fpmPos = fpmStartPos;

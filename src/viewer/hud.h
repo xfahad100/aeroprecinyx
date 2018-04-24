@@ -7,6 +7,7 @@
 #include <QPixmap>
 #include <QGraphicsPixmapItem>
 #include <QPoint>
+#include <math.h>
 
 class HUD
 {
@@ -38,6 +39,7 @@ private:
     float roll;
     float alpha;
     float ppd;
+    double DEG2RAD;
 
 };
 
