@@ -91,6 +91,8 @@ MainWindow::MainWindow( QWidget * parent ) :
     counter = 0;
     ui_rate = 100.0;
     output_rate = 10;
+    fg_rate = 20;
+    ConnectToFG = false;
     for (uint i=0; i<10; i++) {
         thrust[i] = 0.0;
         n1[i] = 0.0;
@@ -146,6 +148,9 @@ MainWindow::MainWindow( QWidget * parent ) :
     ap = new autopilot;
     FDvisible = false;
 
+    // Create interface with FlightGear
+    FGSocket = new OutSocket();
+
     // Read settings from init file
     readSettings();
 
@@ -158,17 +163,22 @@ MainWindow::MainWindow( QWidget * parent ) :
     connect(m_ui->StartJSBSimButton, SIGNAL(clicked()), this,
                      SLOT(StartJSBSim()));
 
-    // Set up timer for the UI main simulation loop (default is 100 hz).
+    // Set up timer for the UI main simulation loop (default = 100 hz).
     iterating = false;
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(MainLoop()));
     timer->start(1000.0/ui_rate);
     iterating = true;
 
-    // Set up UDP output timer for sending datagrams to JSBSim. (default is 10 hz).
+    // Set up UDP output timer for sending datagrams to JSBSim. (default = 10 hz).
     UDPOutTimer = new QTimer(this);
     connect(UDPOutTimer, SIGNAL(timeout()), this, SLOT(setJSBSimControls()));
     UDPOutTimer->start(1000.0/output_rate);
+
+    // Set up UDP output timer for sending datagrams to FlightGear. (default = 20 hz).
+    FGTimer = new QTimer(this);
+    connect(FGTimer, SIGNAL(timeout()), this, SLOT(sendFlightGearData()));
+    FGTimer->start(1000.0/fg_rate);
 
 }
 
@@ -190,6 +200,7 @@ MainWindow::~MainWindow()
     delete debug;
     delete nav;
     delete ap;
+    delete FGSocket;
     if ( m_ui ) { delete m_ui; m_ui = 0; }
 }
 
@@ -275,6 +286,9 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 {
     int keycode = event->key();
     switch (keycode) {
+        case Qt::Key_W:
+           m_ui->console->appendPlainText("W key pressed");  // for testing only
+           break;
         case Qt::Key_G:
            toggle( &gear_cmd );           // toggle gear
            if (gear_cmd) m_ui->GearDownButton->setChecked(true);
@@ -797,6 +811,7 @@ void MainWindow::readSettings(void) {
     inputPort =  settings->value("ports/input").toInt();
     outputPort = settings->value("ports/output").toInt();
     telnetPort = settings->value("ports/telnet").toInt();
+    FGSocket->setPort(settings->value("ports/flightgear").toInt());
 
     ui_rate =     settings->value("rates/UI").toFloat();
     output_rate = settings->value("rates/output").toFloat();
@@ -925,7 +940,7 @@ void MainWindow::on_SBDownButton_clicked()
     speedbrakes_cmd = 0.0;      // retract speed brakes
 }
 
-
+// set a new payload weight
 void MainWindow::on_payloadWeightEdit_returnPressed()
 {
     payload_cmd = (m_ui->payloadWeightEdit->text()).toDouble();
@@ -941,12 +956,13 @@ void MainWindow::on_windSpeedEdit_returnPressed()
     wind_speed = (m_ui->windSpeedEdit->text()).toDouble();
 }
 
+// Set temperature deviation from standard
 void MainWindow::on_temperatureEdit_returnPressed()
 {
     deltaT = (m_ui->temperatureEdit->text()).toDouble();
 }
 
-
+// Send a Pause signal to JSBSim
 void MainWindow::on_PauseJSBSimButton_clicked()
 {
    toggle( &jsbsimPause );
@@ -957,6 +973,7 @@ void MainWindow::on_PauseJSBSimButton_clicked()
    }
 }
 
+// Send a Stop signal to JSBSim
 void MainWindow::on_StopJSBSimButton_clicked()
 {
     toggle( &jsbsimTerminate );              // terminate JSBSim
@@ -965,108 +982,24 @@ void MainWindow::on_StopJSBSimButton_clicked()
     m_ui->console->appendPlainText("Stop signal sent to JSBSim");
 }
 
+// Close this application
 void MainWindow::on_QuitButton_clicked()
 {
     viewer->close();
     this->close();
 }
 
+// Launch the default browser and show home help file
 void MainWindow::on_helpButton_clicked()
 {
     QDesktopServices::openUrl(QUrl("file:///" + installPath + "/docs/en/home.html"));
 }
 
+// Begin ILS calculations, show ILS displays on PFD
 void MainWindow::on_ILSButton_clicked()
 {
     nav->SetILSEngaged(m_ui->ILSButton->isChecked());
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// Display the Cesium viewer window
-//
-void MainWindow::on_ViewerButton_clicked()
-{
-    viewer->setWindowTitle("CesiumJS Viewer");
-    if (useLocal) {
-         viewer->load(localURL);
-    } else {
-         viewer->load(remoteURL);
-    }
-    viewer->show();
-    m_ui->ViewerButton->setChecked(false);
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////
-// Find the path name of your install directory.
-//
-//
-QString MainWindow::getInstallPath(void)
-{
-    // First, get the current working directory
-    QDir currentDir = QDir::current();
-    QString DirNameStr = currentDir.dirName();
-
-    if (DirNameStr == "build-qtjsbsim-Desktop-Debug") {
-        // we are running within QtCreator
-        currentDir.cdUp();
-        return currentDir.absolutePath();
-    }
-
-    while (true){
-        if (DirNameStr.contains("qtjsbsim", Qt::CaseInsensitive)) {
-            return currentDir.absolutePath();
-        }
-        else {
-            if (currentDir.cdUp()) {
-                DirNameStr = currentDir.dirName();
-            } 
-            else {
-                break;
-            }
-        } 
-    }
-
-    qWarning("Could not find the qtjsbsim directory!");
-    return currentDir.absolutePath();
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////
-// This function is called once after the first data from JSBSim arrives.  This
-// is a good place to add a variable to watch in the debug table widget.  Syntax
-// to add an item is:
-//                      debug->addItem( "myvariable", &variable );
-//
-// The variable should be of type double and have global scope.
-//
-void MainWindow::setDebugWatch(void)
-{
-  debug->addItem( "ellipsoid radius (ft)", &rEllipse );
-  debug->addItem( "radius to CG (ft)", &CGRadius);
-  debug->addItem("LOC error (deg)", &intercept);
-  debug->addItem("ILS distance (nm)", &dist);
-  debug->addItem("GS error (deg)", &gserror);
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////
-// This function is called by the main loop, and is a good place to do calc-
-// ulations for variables that aren't otherwise updated.
-//
-void MainWindow::doDebugCalculations(void)
-{
-   // checking the expected ellipsoid radius for this geocentric latitude
-   double DEG2RAD = 3.141592654 / 180.0;
-   double M2FT = 3.28083989501312;
-   double b = 6356752.3142 * M2FT;
-   double e2 = 0.00669437999014;
-   double clat = cos(latitude * DEG2RAD);
-   rEllipse = b / sqrt( 1 - e2 * clat * clat );
-
-   CGRadius = rEllipse + altTerrain + 3.62; // 3.62 for 737 model sitting height
-}
-
 
 // set desired heading (degrees magnetic)
 void MainWindow::on_spinBox_2_valueChanged(int arg1)
@@ -1157,6 +1090,108 @@ void MainWindow::on_GSButton_clicked(bool checked)
     }
 }
 
+// start/stop sending data to FlightGear
+void MainWindow::on_FGButton_clicked(bool checked)
+{
+    ConnectToFG = checked;
+    if (checked) {
+        m_ui->console->appendPlainText("Sending data to FlightGear port.");
+    }  else {
+        m_ui->console->appendPlainText("Stopped sending data to FlightGear port.");
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Display the Cesium viewer window
+//
+void MainWindow::on_ViewerButton_clicked()
+{
+    viewer->setWindowTitle("CesiumJS Viewer");
+    if (useLocal) {
+         viewer->load(localURL);
+    } else {
+         viewer->load(remoteURL);
+    }
+    viewer->show();
+    m_ui->ViewerButton->setChecked(false);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// Find the path name of your install directory.
+//
+//
+QString MainWindow::getInstallPath(void)
+{
+    // First, get the current working directory
+    QDir currentDir = QDir::current();
+    QString DirNameStr = currentDir.dirName();
+
+    if (DirNameStr == "build-qtjsbsim-Desktop-Debug") {
+        // we are running within QtCreator
+        currentDir.cdUp();
+        return currentDir.absolutePath();
+    }
+
+    while (true){
+        if (DirNameStr.contains("qtjsbsim", Qt::CaseInsensitive)) {
+            return currentDir.absolutePath();
+        }
+        else {
+            if (currentDir.cdUp()) {
+                DirNameStr = currentDir.dirName();
+            } 
+            else {
+                break;
+            }
+        } 
+    }
+
+    qWarning("Could not find the qtjsbsim directory!");
+    return currentDir.absolutePath();
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// This function is called once after the first data from JSBSim arrives.  This
+// is a good place to add a variable to watch in the debug table widget.  Syntax
+// to add an item is:
+//                      debug->addItem( "myvariable", &variable );
+//
+// The variable should be of type double and have global scope.
+//
+void MainWindow::setDebugWatch(void)
+{
+  debug->addItem( "ellipsoid radius (ft)", &rEllipse );
+  debug->addItem( "radius to CG (ft)", &CGRadius);
+  debug->addItem("LOC error (deg)", &intercept);
+  debug->addItem("ILS distance (nm)", &dist);
+  debug->addItem("GS error (deg)", &gserror);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// This function is called by the main loop, and is a good place to do calc-
+// ulations for variables that aren't otherwise updated.
+//
+void MainWindow::doDebugCalculations(void)
+{
+   // checking the expected ellipsoid radius for this geocentric latitude
+   double DEG2RAD = 3.141592654 / 180.0;
+   double M2FT = 3.28083989501312;
+   double b = 6356752.3142 * M2FT;
+   double e2 = 0.00669437999014;
+   double clat = cos(latitude * DEG2RAD);
+   rEllipse = b / sqrt( 1 - e2 * clat * clat );
+
+   CGRadius = rEllipse + altTerrain + 3.62; // 3.62 for 737 model sitting height
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// This is still a work in progress
+//
+//
 void MainWindow::UpdateAutopilot()
 {
     double _dt = 1.0 / framerate;
@@ -1180,3 +1215,27 @@ void MainWindow::UpdateAutopilot()
     }
 
 }
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// Send JSBSim data to Flightgear via a UDP socket
+//
+//
+void MainWindow::sendFlightGearData(void)
+{
+   if (!ConnectToFG) return;
+   if (!FGSocket->Connected()) return;
+   Packet* packet = FGSocket->getPacket();
+   packet->setLongitude(longitude);         // degrees
+   packet->setLatitude(latitude);           // degrees
+   packet->setAltitude(altitude);           // feet
+   packet->setRoll(phi);                    // degrees
+   packet->setPitch(psi);                   // degrees
+   packet->setTrueHdg(yaw);                 // degrees
+   packet->setVelocity(airspeed);           // knots calibrated
+   packet->setClimbRate(climb_rate);        // feet/minute
+
+   qint64 rval = FGSocket->Send();
+   //m_ui->console->appendPlainText(QString::number(rval) + " bytes sent");
+}
+

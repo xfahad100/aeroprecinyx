@@ -27,6 +27,8 @@
 #include "nav/navigation.h"
 #include "autopilot/autopilot.h"
 #include "input/joystick.h"
+#include "flightgear/outsocket.h"
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -108,7 +110,7 @@ public:
     double wind_dir, wind_speed, deltaT;
     double Pt, Qbar, TAT, OAT, Re, g, rho;
     double jsbsim_dt, jsbsimTerminate, jsbsimPause;
-    float  ui_rate, output_rate;
+    float  ui_rate, output_rate, fg_rate;
     int counter;
     bool firstTime;
     double rEllipse;
@@ -133,12 +135,14 @@ public slots:
     void processError(QProcess::ProcessError err);
     void StartJSBSim(void);
     void setJSBSimControls(void);
+    void sendFlightGearData(void);
 
 protected:
 
     void UpdateDisplays(void);
     void UpdateNavigation(void);
     void UpdateAutopilot(void);
+    void UpdateFlightGear(void);
     void keyPressEvent( QKeyEvent * event);
     double toggle( double* number);
     double step( double* number, int numsteps, int direction);
@@ -172,6 +176,7 @@ private slots:
     void on_VSButton_clicked(bool checked);
     void on_FLCHButton_clicked(bool checked);
     void on_GSButton_clicked(bool checked);
+    void on_FGButton_clicked(bool checked);
 
 private:
 
@@ -187,11 +192,14 @@ private:
     double dt;
     QTimer* timer;
     QTimer* UDPOutTimer;
+    QTimer* FGTimer;
     QSettings* settings;
     QButtonGroup* gearCmd;
     QButtonGroup* sbCmd;
     debugTable* debug;
     Joystick* joystick;
+    OutSocket* FGSocket;
+    bool ConnectToFG;
 
     void readSettings(void);
     void writeSettings(void);

@@ -20,7 +20,8 @@ else:win32:CONFIG(debug, debug|release): DEFINES += _DEBUG
 
 #-------------------------------------------------
 
-INCLUDEPATH += ./ ./QFI ./autopilot ./debug ./jsbsim ./nav ./viewer ./input \
+INCLUDEPATH += ./ ./QFI ./autopilot ./debug ./jsbsim ./nav ./viewer \
+               ./input ./flightgear \
                 /usr/local/include/JSBSim /usr/include/plib
 
 #-------------------------------------------------
@@ -42,7 +43,10 @@ HEADERS += \
     nav/navigation.h \
     viewer/hud.h \
     viewer/viewer.h \
-    input/joystick.h
+    input/joystick.h \
+    flightgear/packet.h \
+    flightgear/net_fdm.hxx \
+    flightgear/outsocket.h
 
 SOURCES += \
     main.cpp \
@@ -57,7 +61,9 @@ SOURCES += \
     QFI/WidgetPFD.cpp \
     viewer/hud.cpp \
     viewer/viewer.cpp \
-    input/joystick.cpp
+    input/joystick.cpp \
+    flightgear/packet.cpp \
+    flightgear/outsocket.cpp
 
 FORMS += \
     MainWindow.ui \

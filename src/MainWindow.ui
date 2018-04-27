@@ -218,9 +218,9 @@
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_6">
+     <widget class="QPushButton" name="FGButton">
       <property name="enabled">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -234,7 +234,15 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="text">
-       <string/>
+       <string>  FG</string>
+      </property>
+      <property name="icon">
+       <iconset resource="icons.qrc">
+        <normaloff>:/images/dkgreen.png</normaloff>
+        <normalon>:/images/green.png</normalon>:/images/dkgreen.png</iconset>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
       </property>
      </widget>
      <widget class="QPushButton" name="helpButton">
