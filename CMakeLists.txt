@@ -24,6 +24,7 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}"
   "${CMAKE_SOURCE_DIR}/src/debug"
   "${CMAKE_SOURCE_DIR}/src/jsbsim"
   "${CMAKE_SOURCE_DIR}/src/joystick"
+  "${CMAKE_SOURCE_DIR}/src/flightgear"
   ${PLIB_INCLUDE_DIR}
   )
 

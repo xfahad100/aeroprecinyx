@@ -15,6 +15,8 @@ SET(SRC_OBJS
      QFI/LayoutSquare.cpp
      QFI/qfi_PFD.cpp
      QFI/WidgetPFD.cpp
+     flightgear/packet.cpp
+     flightgear/outsocket.cpp
    )
 
 SET(SRC_HDRS
@@ -31,6 +33,9 @@ SET(SRC_HDRS
      QFI/qfi_ADI.h
      QFI/qfi_PFD.h
      QFI/WidgetPFD.h
+     flightgear/net_fdm.hxx
+     flightgear/packet.h
+     flightgear/outsocket.h
    )
 
 SET(GUI_FILES
