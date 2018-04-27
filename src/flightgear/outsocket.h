@@ -22,6 +22,7 @@ private:
     bool connected;
     int port;
     Packet* packet;
+    std::size_t size;
 };
 
 #endif // OUTSOCKET_H

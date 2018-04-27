@@ -5,8 +5,8 @@ Packet::Packet()
     packet = new FGNetFDM();
     isLittleEndian = true;           // default for intel x86
     isLittleEndian = EndianTest();
-    DEFAULT_VISIBILITY = 20000.0;    // 20 kilometers
-    DEFAULT_TIME = 1524700000;
+    DEFAULT_VISIBILITY = 30000.0;    // 30 kilometers
+    DEFAULT_TIME = 1524700000;       // unix time
     DEG2RAD = 0.01745329251;
     FT2M = 0.3048;
     Init();
@@ -28,7 +28,7 @@ void Packet::Init() {
     packet->padding = htonl(0);
     htond(packet->longitude = 0.0);
     htond(packet->latitude = 0.0);
-    htond(packet->latitude = 0.0);
+    htond(packet->altitude = 0.0);
     htonf(packet->agl = 0.0);
     htonf(packet->phi = 0.0);
     htonf(packet->theta = 0.0);

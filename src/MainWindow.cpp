@@ -182,6 +182,7 @@ MainWindow::MainWindow( QWidget * parent ) :
 
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
 
 MainWindow::~MainWindow()
@@ -207,9 +208,9 @@ MainWindow::~MainWindow()
 
 ////////////////////////////////////////////////////////////////////////////////
 // The main loop slot.  It includes a frame rate checker so that actual frame
-// rate can be checked against requested frame rate.  Note that the function that
-// sends data to JSBSim isn't in here because it's called by another timer with a
-// different rate.
+// rate can be checked against requested frame rate.  Note that the functions that
+// send data to JSBSim and FlightGear aren't in here because they're called by
+// other timers with different rates.
 //
 void MainWindow::MainLoop()
 {
@@ -280,7 +281,8 @@ void MainWindow::get_joystick_inputs(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Gets keyboard key events and sets associated variables. These are later sent
-// to JSBSim over the socket.
+// to JSBSim over the socket.  Note that the GUI can prevent this from working
+// if an input widget has the keyboard focus.
 //
 void MainWindow::keyPressEvent(QKeyEvent* event)
 {
@@ -371,7 +373,6 @@ void MainWindow::getJSBSimData(void)
     if (datagram.at(0) == 0x3C) return;       // throw away JSBSim's header datagram
 
     datagram = datagram.trimmed();            // remove white space
-    //datagram.append(',');                     // add a ',' at the end
     tokens = datagram.split(',');             // tokenize
 
     for (int i=0; i<tokens.size(); i++)
@@ -878,7 +879,7 @@ void MainWindow::on_ConnectButton_clicked()
       jsbsimDataSocket = new QUdpSocket(this);
       jsbsimDataSocket->bind(inputPort, QUdpSocket::ShareAddress);
       if (jsbsimDataSocket) {
-          m_ui->console->appendPlainText("Established UDP input socket at port " +
+          m_ui->console->appendPlainText("Established JSBSim input socket at port " +
                                          QString::number(inputPort));
       }
 
@@ -886,7 +887,7 @@ void MainWindow::on_ConnectButton_clicked()
       jsbsimControlsSocket = new QUdpSocket(this);
       jsbsimControlsSocket->bind(outputPort, QUdpSocket::ShareAddress);
       if (jsbsimControlsSocket) {
-          m_ui->console->appendPlainText("Established UDP output socket at port " +
+          m_ui->console->appendPlainText("Established JSBSim output socket at port " +
                                          QString::number(outputPort));
       }
 
@@ -901,8 +902,8 @@ void MainWindow::on_ConnectButton_clicked()
         jsbsimDataSocket = NULL;
         jsbsimControlsSocket = NULL;
         connected = false;
-        m_ui->console->appendPlainText("Closed UDP input socket.");
-        m_ui->console->appendPlainText("Closed UDP output socket.");
+        m_ui->console->appendPlainText("Closed JSBSim input socket.");
+        m_ui->console->appendPlainText("Closed JSBSim output socket.");
         m_ui->ConnectButton->setChecked(false);
     }
 }
@@ -983,12 +984,17 @@ void MainWindow::on_StopJSBSimButton_clicked()
     m_ui->console->appendPlainText("Stop signal sent to JSBSim");
 }
 
-// Close this application
+// Close this application.  Make sure JSBSim closes first.
 void MainWindow::on_QuitButton_clicked()
 {
-    viewer->close();
-    this->close();
+    if (JSBSim->state() == QProcess::Running) {
+        JSBSim->kill();
+    } else {
+        viewer->close();
+        this->close();
+    }
 }
+
 
 // Launch the default browser and show home help file
 void MainWindow::on_helpButton_clicked()
@@ -1096,9 +1102,9 @@ void MainWindow::on_FGButton_clicked(bool checked)
 {
     ConnectToFG = checked;
     if (checked) {
-        m_ui->console->appendPlainText("Sending data to FlightGear port.");
+        m_ui->console->appendPlainText("Sending data to FlightGear.");
     }  else {
-        m_ui->console->appendPlainText("Stopped sending data to FlightGear port.");
+        m_ui->console->appendPlainText("Stopped sending data to FlightGear.");
     }
 }
 
@@ -1119,8 +1125,8 @@ void MainWindow::on_ViewerButton_clicked()
 
 
 /////////////////////////////////////////////////////////////////////////////////
-// Find the path name of your install directory.
-//
+// Find the path name of your install directory.  This needed to find the path
+// to the ini file.
 //
 QString MainWindow::getInstallPath(void)
 {
@@ -1220,12 +1226,11 @@ void MainWindow::UpdateAutopilot()
 
 /////////////////////////////////////////////////////////////////////////////////
 // Send JSBSim data to Flightgear via a UDP socket.  The units are
-// converted by the pascket if needed, and byte order conversions are
+// converted by the packet if needed, and byte order conversions are
 // also done by the packet.
 void MainWindow::sendFlightGearData(void)
 {
    if (!ConnectToFG) return;
-   if (!FGSocket->Connected()) return;
    Packet* packet = FGSocket->getPacket();
    packet->setLongitude(longitude);         // degrees
    packet->setLatitude(latitude);           // degrees
@@ -1247,7 +1252,6 @@ void MainWindow::sendFlightGearData(void)
    packet->setvV(vV);                       // feet per second
    packet->setvW(vW);                       // feet per second
 
-   qint64 rval = FGSocket->Send();
-   //m_ui->console->appendPlainText(QString::number(rval) + " bytes sent");
+   FGSocket->Send();
 }
 
