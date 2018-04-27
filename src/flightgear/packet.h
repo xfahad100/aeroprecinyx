@@ -24,6 +24,17 @@ public:
     void setVelocity(float v);       // knots calibrated airspeed
     void setClimbRate(float c);      // feet per minute
     void setAltAGL(float a);         // feet AGL
+    void setBeta(float b);           // deg
+    void setP(float p);              // radians per second
+    void setQ(float q);              // radians per second
+    void setR(float r);              // radians per second
+    void setVN(float vN);            // feet per second
+    void setVE(float vE);            // feet per second
+    void setVD(float vD);            // feet per second
+    void setvU(float vU);            // feet per second
+    void setvV(float vV);            // feet per second
+    void setvW(float vW);            // feet per second
+
 
     FGNetFDM* getPacketPtr();
 

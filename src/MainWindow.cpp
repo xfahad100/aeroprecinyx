@@ -815,6 +815,7 @@ void MainWindow::readSettings(void) {
 
     ui_rate =     settings->value("rates/UI").toFloat();
     output_rate = settings->value("rates/output").toFloat();
+    fg_rate =     settings->value("rates/FlightGear").toFloat();
 
     pitch_trim =      settings->value("aircraft/pitch-trim").toDouble();
     pitch_trim_rate = settings->value("aircraft/pitch-trim-rate").toFloat();
@@ -1218,9 +1219,9 @@ void MainWindow::UpdateAutopilot()
 
 
 /////////////////////////////////////////////////////////////////////////////////
-// Send JSBSim data to Flightgear via a UDP socket
-//
-//
+// Send JSBSim data to Flightgear via a UDP socket.  The units are
+// converted by the pascket if needed, and byte order conversions are
+// also done by the packet.
 void MainWindow::sendFlightGearData(void)
 {
    if (!ConnectToFG) return;
@@ -1229,11 +1230,22 @@ void MainWindow::sendFlightGearData(void)
    packet->setLongitude(longitude);         // degrees
    packet->setLatitude(latitude);           // degrees
    packet->setAltitude(altitude);           // feet
-   packet->setRoll(phi);                    // degrees
-   packet->setPitch(psi);                   // degrees
+   packet->setRoll(roll);                   // degrees
+   packet->setPitch(pitch);                 // degrees
    packet->setTrueHdg(yaw);                 // degrees
    packet->setVelocity(airspeed);           // knots calibrated
    packet->setClimbRate(climb_rate);        // feet/minute
+   packet->setAltAGL(altAGL);               // feet
+   packet->setBeta(beta);                   // deg
+   packet->setP(P);                         // radians per second
+   packet->setQ(Q);                         // radians per second
+   packet->setR(R);                         // radians per second
+   packet->setVN(vN);                       // feet per second
+   packet->setVE(vE);                       // feet per second
+   packet->setVD(vD);                       // feet per second
+   packet->setvU(vU);                       // feet per second
+   packet->setvV(vV);                       // feet per second
+   packet->setvW(vW);                       // feet per second
 
    qint64 rval = FGSocket->Send();
    //m_ui->console->appendPlainText(QString::number(rval) + " bytes sent");
