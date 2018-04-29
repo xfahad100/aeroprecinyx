@@ -47,9 +47,9 @@
             <z>  70 </z>
         </location>
         <location name="VRP" unit="IN">
-            <x> 0 </x>
+            <x> 300 </x>
             <y> 0 </y>
-            <z> 0 </z>
+            <z> 10 </z>
         </location>
     </metrics>
 
@@ -64,7 +64,7 @@
         <location name="CG" unit="IN">
             <x> 639 </x>
             <y>   0 </y>
-            <z> -40 </z>
+            <z> -30 </z>
         </location>
         <pointmass name="payload">
             <weight unit="LBS"> 10000 </weight>

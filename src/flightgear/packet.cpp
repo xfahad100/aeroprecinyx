@@ -75,7 +75,7 @@ void Packet::Init() {
         htonf(packet->gear_steer[i] = 0.0);
         htonf(packet->gear_compression[i] = 0.0);
     }
-    packet->cur_time = htonl(DEFAULT_TIME);
+    packet->cur_time = htonl((uint32_t)time(&curTime));
     packet->warp = htonl(0);
     htonf(packet->visibility = DEFAULT_VISIBILITY);
     htonf(packet->elevator = 0.0);

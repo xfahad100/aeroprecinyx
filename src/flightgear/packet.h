@@ -3,7 +3,7 @@
 
 #include <netinet/in.h>
 #include "net_fdm.hxx"
-#include <chrono>
+#include <time.h>
 
 class Packet
 {
@@ -45,6 +45,7 @@ private:
     double DEG2RAD;
     double FT2M;
     uint32_t DEFAULT_TIME;
+    time_t curTime;
 };
 
 #endif // PACKET_H
