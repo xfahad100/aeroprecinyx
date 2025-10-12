@@ -1291,3 +1291,27 @@ void MainWindow::sendFlightGearData(void)
    FGSocket->Send();
 }
 
+
+void MainWindow::on_M_aileron_valueChanged(int value)
+{
+    aileronSlider = double (m_ui->M_aileron->value())/100;
+    aileron = aileronSlider;
+}
+
+void MainWindow::on_M_elevator_valueChanged(int value)
+{
+    elevatorSlider = double(m_ui->M_elevator->value())/100;
+    elevator = elevatorSlider;
+}
+
+void MainWindow::on_M_rudder_valueChanged(int value)
+{
+    rudderSlider = double(m_ui->M_rudder->value())/100;
+    rudder = rudderSlider;
+}
+
+
+void MainWindow::on_Mthrottle_valueChanged(int value)
+{
+    throttle = double(m_ui->Mthrottle->value())/100;
+}

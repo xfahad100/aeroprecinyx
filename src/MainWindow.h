@@ -121,6 +121,7 @@ public:
     bool FPM_enabled;
     bool FDvisible;
     double ap_elevator_cmd, ap_aileron_cmd;
+    double aileronSlider, elevatorSlider, rudderSlider;
 
     quint16 outputPort, inputPort, telnetPort;
     QHostAddress hostAddress;
@@ -181,6 +182,14 @@ private slots:
     void on_FLCHButton_clicked(bool checked);
     void on_GSButton_clicked(bool checked);
     void on_FGButton_clicked(bool checked);
+
+    void on_M_aileron_valueChanged(int value);
+
+    void on_Mthrottle_valueChanged(int value);
+
+    void on_M_elevator_valueChanged(int value);
+
+    void on_M_rudder_valueChanged(int value);
 
 private:
 
