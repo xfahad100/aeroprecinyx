@@ -88,7 +88,10 @@ public:
     double phi, theta, psi, P, Q, R;
     double altitude, latitude, longitude, GeoLat;
     double GeoAlt, altAGL, altTerrain, ECRadius, CGRadius;
-    double airspeed, vtrue, gs, climb_rate, mach;
+    double pix_airspeed, elevnorm, airspeed, vtrue, gs, climb_rate, mach;
+    float pixpitch, pixroll, pixyaw;
+    double pixalt, pixlat, pixlon;
+    double pixaccx, pixaccy, pixaccz;
     double vN, vE, vD, vU, vV, vW;
     double thrust[10];
     double n1[10];
