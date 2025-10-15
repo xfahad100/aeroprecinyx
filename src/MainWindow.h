@@ -29,8 +29,10 @@
 #include "jsbsim/jsbsim.h"
 #include "nav/navigation.h"
 #include "autopilot/autopilot.h"
+#include "autopilot/pid.h"
 #include "input/joystick.h"
 #include "flightgear/outsocket.h"
+#include "math.h"
 
 
 
@@ -123,7 +125,14 @@ public:
     double rEllipse;
     bool FPM_enabled;
     bool FDvisible;
-    double ap_elevator_cmd, ap_aileron_cmd;
+    bool senswitch;
+    int desired_vs;
+    float armed_;
+    float battper;
+    double des_alt;
+    double des_hdg;
+    double currentgs;
+    double ap_elevator_cmd, ap_aileron_cmd, ap_rudder_cmd;
     double aileronSlider, elevatorSlider, rudderSlider;
 
     quint16 outputPort, inputPort, telnetPort;
@@ -193,6 +202,8 @@ private slots:
     void on_M_elevator_valueChanged(int value);
 
     void on_M_rudder_valueChanged(int value);
+
+    void on_APButton_clicked(bool checked);
 
 private:
 

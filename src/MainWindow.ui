@@ -474,7 +474,7 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>5</number>
      </property>
      <widget class="QWidget" name="tab_17">
       <attribute name="title">
@@ -1603,7 +1603,7 @@
       </attribute>
       <widget class="QPushButton" name="FDButton">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -1633,7 +1633,7 @@
       </widget>
       <widget class="QPushButton" name="HDGButton">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -1663,7 +1663,7 @@
       </widget>
       <widget class="QSpinBox" name="spinBox_2">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -1704,7 +1704,7 @@
       </widget>
       <widget class="QPushButton" name="APButton">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -1747,7 +1747,7 @@
       </widget>
       <widget class="QPushButton" name="AltHoldButton">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -1777,7 +1777,7 @@
       </widget>
       <widget class="QSpinBox" name="spinBox_3">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -1815,7 +1815,7 @@
       </widget>
       <widget class="QPushButton" name="LOCButton">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -1845,7 +1845,7 @@
       </widget>
       <widget class="QPushButton" name="VSButton">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -1875,7 +1875,7 @@
       </widget>
       <widget class="QSpinBox" name="spinBox_4">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -1945,7 +1945,7 @@
       </widget>
       <widget class="QPushButton" name="FLCHButton">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
@@ -1975,7 +1975,7 @@
       </widget>
       <widget class="QPushButton" name="GSButton">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
