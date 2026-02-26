@@ -16,7 +16,7 @@ Joystick::Joystick()
 
     // -1 signifies not assigned yet
     elevator_axis = aileron_axis = rudder_axis = -1;
-    elevator_trim_axis = aileron_trim_axis = throttle_axis = -1;
+   // elevator_trim_axis = aileron_trim_axis = throttle_axis = -1;
     deadband[0] = deadband[1] = deadband[2] = 0.0;
 }
 
@@ -80,7 +80,7 @@ double Joystick::getRudder()
 
 double Joystick::getThrottle()
 {
-   if (throttle_axis >= 0) return (ax[throttle_axis]-1.0)/-2.0;
+   if (throttle_axis >= 0) return (ax[throttle_axis]+1.0)/-2.0;
    return 0.0;
 }
 

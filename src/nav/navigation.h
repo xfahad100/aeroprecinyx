@@ -2,6 +2,7 @@
 #define NAVIGATION_H
 
 #include "math.h"
+#include <iostream>
 #include <QString>
 
 struct GeoLoc {
@@ -30,6 +31,7 @@ public:
     void SetPosition(double lat, double lon, double alt);
     void SetTrueHeading(double hdg);
     void SetILSEngaged(bool set);
+    void SetGSEngaged(bool set);
     void SetSelectedHdg(int val);
     void SetHDGEngaged(bool set);
 
@@ -59,10 +61,13 @@ private:
     double GSError;
     double interceptAngle;
     double distance;
+    double distance2;
     GeoLoc pos;
     GeoLoc dest;
     bool ILS;
+    bool _GSbool;
     bool HDG;
+    bool secinterval;
 };
 
 #endif // NAVIGATION_H

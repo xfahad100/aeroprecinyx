@@ -6,10 +6,14 @@
 
 message("Qt Version "$$QT_VERSION)
 
-QT  += widgets svg network webkitwidgets
+QT  += widgets svg network webkitwidgets charts
 
 TARGET = qtjsbsim
 TEMPLATE = app
+
+    CONFIG += qwt
+    INCLUDEPATH +="/usr/local/qwt-6.1.0-rc3/include"
+    LIBS += -L/usr/local/qwt-6.1.0-rc3/lib
 
 #-------------------------------------------------
 

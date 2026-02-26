@@ -53,9 +53,12 @@ MainWindow::MainWindow( QWidget * parent ) :
     timeStamp->start();
 
     // Initialize variables
+    elevnorm = 0.0;
     aileron = elevator = rudder = throttle = 0.0;
-    pitch_trim = -0.15;
-    pitch_trim_rate = 0.2;
+    pitch_trim = 0.0;
+    des_alt = 0.0;
+    des_hdg = 0.0;
+    pitch_trim_rate = 0.0;
     aileron_trim = rudder_trim = 0.0;
     pitch_trim_pos = aileron_trim_pos = rudder_trim_pos = 0.0;
     aileron_pos = elevator_pos = rudder_pos = throttle_pos = 0.0;
@@ -63,8 +66,9 @@ MainWindow::MainWindow( QWidget * parent ) :
     phi = theta = psi = P = Q = R = 0.0;
     altitude = latitude = longitude = GeoLat = 0.0;
     GeoAlt = altAGL = altTerrain = ECRadius = CGRadius = 0.0;
-    altTerrain = 95.248;  // temporary hack *******************************
+    altTerrain = 1667;  // temporary hack *******************************
     climb_rate = airspeed = mach = vtrue = gs = 0.0;
+    pixroll=pixyaw=pixpitch=0.0;
     vN = vE = vD = vU = vV = vW = 0.0;
     fuel_total = weight = empty_weight = payload = 0.0;
     payload_cmd = 10000.0;
@@ -92,6 +96,10 @@ MainWindow::MainWindow( QWidget * parent ) :
     ui_rate = 100.0;
     output_rate = 10;
     fg_rate = 20;
+    dimu = 0;
+    dold = 0;
+   // desired_vs = 0;
+    armed_ = 0;
     ConnectToFG = false;
     for (uint i=0; i<10; i++) {
         thrust[i] = 0.0;
@@ -182,8 +190,7 @@ MainWindow::MainWindow( QWidget * parent ) :
 
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 
 MainWindow::~MainWindow()
 {
@@ -223,7 +230,10 @@ void MainWindow::MainLoop()
     get_joystick_inputs();
     getJSBSimData();
     UpdateNavigation();
-    UpdateAutopilot();
+    //UpdateAutopilot();
+//    if(armed_){
+//    distancefromIMU();
+//    }
     UpdateDisplays();
     doDebugCalculations();
     debug->update();
@@ -248,7 +258,7 @@ void MainWindow::get_joystick_inputs(void)
     aileron  = joystick->getAileron();
     elevator = joystick->getElevator();
     rudder   = joystick->getRudder();
-    throttle = joystick->getThrottle();
+    //throttle = joystick->getThrottle();
     aileron_trim += joystick->getAileronTrim() * dt/5.0;
     pitch_trim -= joystick->getElevatorTrim() * dt * pitch_trim_rate;
 
@@ -261,7 +271,7 @@ void MainWindow::get_joystick_inputs(void)
     m_ui->rudderLabel->setText(QString::number(rudder, 'f', 3));
     m_ui->throttleSlider->setValue(throttle*100);
     m_ui->throttleLabel->setText(QString::number(throttle, 'f', 3));
-
+    //std::cout << "servo:: " <<ap_aileron_cmd<< endl;
     m_ui->jsButton_0->setChecked(joystick->getButtonState(0));
     m_ui->jsButton_1->setChecked(joystick->getButtonState(1));
     m_ui->jsButton_2->setChecked(joystick->getButtonState(2));
@@ -290,7 +300,12 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     switch (keycode) {
         case Qt::Key_W:
            m_ui->console->appendPlainText("W key pressed");  // for testing only
+           throttle = throttle +0.05;
            break;
+        case Qt::Key_S:
+            m_ui->console->appendPlainText("W key pressed");  // for testing only
+            throttle = throttle -0.05;
+            break;
         case Qt::Key_G:
            toggle( &gear_cmd );           // toggle gear
            if (gear_cmd) m_ui->GearDownButton->setChecked(true);
@@ -305,16 +320,16 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
         case Qt::Key_T:
            toggle( &jsbsimTerminate );    // terminate JSBSim
            break;
-        case Qt::Key_S:                   // engine starter(s)
-           if (selected_engine == -1) {
-           toggle( &starter[0] );
-           toggle( &starter[1] );
-           toggle( &starter[2] );
-           toggle( &starter[3] );
-           } else {
-               toggle( &starter[(int)selected_engine - 1] );
-           }
-           break;
+//        case Qt::Key_S:                   // engine starter(s)
+//           if (selected_engine == -1) {
+//           toggle( &starter[0] );
+//           toggle( &starter[1] );
+//           toggle( &starter[2] );
+//           toggle( &starter[3] );
+//           } else {
+//               toggle( &starter[(int)selected_engine - 1] );
+//           }
+//           break;
         case Qt::Key_Q:                   // engine fuel cutoff(s)
            if (selected_engine == -1) {
            toggle( &cutoff[0] );
@@ -374,9 +389,10 @@ void MainWindow::getJSBSimData(void)
 
     datagram = datagram.trimmed();            // remove white space
     tokens = datagram.split(',');             // tokenize
-
+//std::cout << "data:: " <<tokens.size()<< endl;
     for (int i=0; i<tokens.size(); i++)
       data[i] = tokens[i].trimmed().toDouble();
+
 
     simtime = data.at(0);
     airspeed = data.at(1);
@@ -403,35 +419,50 @@ void MainWindow::getJSBSimData(void)
     latitude = data.at(22);
     longitude = data.at(23);
     GeoLat = data.at(24);
-    thrust[0] = data.at(25);
-    thrust[1] = data.at(26);
-    n1[0] = data.at(27);
-    n1[1] = data.at(28);
-    n2[0] = data.at(29);
-    n2[1] = data.at(30);
-    ff[0] = data.at(31) * 3600.0;    // lbs/sec to lbs/hr
-    ff[1] = data.at(32) * 3600.0;    // lbs/sec to lbs/hr
-    fuel_total = data.at(33);
-    weight = data.at(34);
-    empty_weight = data.at(35);
-    gear_pos = data.at(36);
-    flap_pos = data.at(37);
-    speedbrake_pos = data.at(38);
-    aileron_pos = data.at(39);
-    elevator_pos = data.at(40);
-    rudder_pos = data.at(41);
-    payload = data.at(42);
-    Pt = data.at(43);
-    Qbar = data.at(44);
-    TAT = data.at(45);
-    OAT = (data.at(46) -491.67) * 0.5555555556;     // Rankine to Celsius
-    Re = data.at(47);
-    g = data.at(48) * -1.0;
-    rho = data.at(49);
-    jsbsim_dt = data.at(50);
-    GeoAlt = data.at(51);
-    ECRadius = data.at(52);
+    rpm[0] = data.at(25);
+    rpm_prop[0] = data.at(26);
+    gph[0] = data.at(27);
+    thrust[0] = data.at(28) * 4.4482189159;
+   // power[0] = data.at(28);
+//    n2[0] = data.at(29);
+//    n2[1] = data.at(30);
+//    ff[0] = data.at(31) * 3600.0;    // lbs/sec to lbs/hr
+//    ff[1] = data.at(32) * 3600.0;    // lbs/sec to lbs/hr
+//    fuel_total = data.at(33);
+    //gear_pos = data.at(36);
+    //flap_pos = data.at(37);
+   // speedbrake_pos = data.at(36);
+    aileron_pos = data.at(29);
+    elevator_pos = data.at(30);
+    rudder_pos = data.at(31);
+//    payload = data.at(39);
+//    Pt = data.at(40);
+//    Qbar = data.at(41);
+//    TAT = data.at(42);
+//    OAT = (data.at(43) -491.67) * 0.5555555556;     // Rankine to Celsius
+//    Re = data.at(44);
+//    g = data.at(45) * -1.0;
+//    rho = data.at(46);
+    jsbsim_dt = data.at(32);
+    GeoAlt = data.at(33);
+    ECRadius = data.at(34);
+    throttle_pos = data.at(35);
+    weight = data.at(36);
+    empty_weight = data.at(37);
+    fuel_total = data.at(38);
 
+    pixpitch =  data.at(39);
+    pixyaw = data.at(40);
+    pixroll = data.at(41);
+    pix_airspeed = data.at(42);
+    pixlat = data.at(43);
+    pixlon = data.at(44);
+    pixalt = data.at(45);
+    pixaccx = data.at(46);
+    pixaccy = data.at(47);
+    pixaccz = data.at(48);
+    elevnorm = data.at(49);
+// std::cout << "elevnorm: " <<elevnorm<< endl;
     // now that we have our first data from JSBSim
     if( firstTime ) {
         setDebugWatch();
@@ -454,8 +485,29 @@ void MainWindow::setJSBSimControls(void)
    if (!connected) return;
 
    if (ap->getEngaged()){
-       if (ap->getVMode() != autopilot::VNone) elevator = ap_elevator_cmd;
-       if (ap->getLMode() != autopilot::LNone) aileron = ap_aileron_cmd;
+      // if (ap->getVMode() != autopilot::VNone) elevator = ap_elevator_cmd;
+      // if (ap->getLMode() != autopilot::LNone) aileron = ap_aileron_cmd;
+      // std::cout << "engaged " <<endl;
+       UpdateAutopilot();
+       ap_rudder_cmd = ap->ap_rudder;
+       ap_aileron_cmd = ap->ap_aileron;
+      ap_elevator_cmd =ap->ap_elevator;
+
+      aileron = aileronSlider = 0.0;
+      elevatorSlider = 0.0;
+      rudderSlider = 0.0;
+     //  std::cout << "ap rudder:: " <<ap_aileron_cmd<< endl;
+       //ap_elevator_cmd = ;
+   }
+   else
+   {
+      ap_aileron_cmd = 0;
+      ap_elevator_cmd = 0;
+      ap_rudder_cmd =0;
+       aileron = aileronSlider;
+      // std::cout << "aileron:: " <<ap_aileron_cmd<< endl;
+       elevator = elevatorSlider;
+       rudder = rudderSlider;
    }
 
    QByteArray datagram;
@@ -477,28 +529,32 @@ void MainWindow::setJSBSimControls(void)
    datagram.append(',');
    datagram.append(QString::number(throttle, 'f', 5));   // one for each engine
    datagram.append(',');
-   datagram.append(QString::number(throttle, 'f', 5));
-   datagram.append(',');
-   datagram.append(QString::number(flap_cmd, 'f', 5));
-   datagram.append(',');
-   datagram.append(QString::number(gear_cmd, 'f', 5));
-   datagram.append(',');
-   datagram.append(QString::number(speedbrakes_cmd, 'f', 5));
-   datagram.append(',');
-   datagram.append(QString::number(wind_dir*0.017453293, 'f', 5));   // degrees to radians
-   datagram.append(',');
-   datagram.append(QString::number(wind_speed*1.687809857, 'f', 5));   // knots to fps
-   datagram.append(',');
-   datagram.append(QString::number(deltaT*1.8, 'f', 5));    // Celsius to Rankine
-   datagram.append(',');
-   datagram.append(QString::number(payload_cmd, 'f', 5));
-   datagram.append(',');
-   datagram.append(QString::number(altTerrain, 'f', 5));
-   datagram.append(',');
    datagram.append(QString::number(jsbsimTerminate, 'f', 0));
    datagram.append(',');
    datagram.append(QString::number(jsbsimPause, 'f', 0));
    datagram.append(',');
+   ///Autopilot Nodes for input 25-1-2021
+   datagram.append(QString::number(ap_aileron_cmd, 'f', 2)); //0.35
+   datagram.append(',');
+   datagram.append(QString::number(ap_elevator_cmd, 'f', 2));
+   datagram.append(',');
+   datagram.append(QString::number(armed_, 'f', 1));
+   datagram.append(',');
+   datagram.append(QString::number(ap_rudder_cmd, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(gserror, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(currentgs, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(wind_speed, 'f', 5));
+   datagram.append(',');
+   datagram.append(QString::number(wind_dir, 'f', 5));
+   datagram.append(',');
+//not in cmd, in radians
+// std::cout << "speed:" <<wind_speed<<endl;
+ //std::cout << "dir:" <<wind_dir<<endl;
+//   std::cout << "apelevator :" <<ap_elevator_cmd<<endl;
+   //std::cout << "aprudder :" <<ap_rudder_cmd<<endl;
 
    jsbsimControlsSocket->writeDatagram(datagram, hostAddress, outputPort);
 
@@ -513,22 +569,42 @@ void MainWindow::setJSBSimControls(void)
 //
 void MainWindow::UpdateDisplays()
 {
+    //graph
+//    m_ui->qwtPlot->setTitle("roll");
+//    m_ui->qwtPlot->setAxisTitle(2,"time");
+//    m_ui->qwtPlot->setAxisTitle(0,"roll");
 
   // Send data to PFD
   m_ui->widgetPFD->setAirspeed(airspeed);
   m_ui->widgetPFD->setAltitude(altitude);
-  m_ui->widgetPFD->setPitch(pitch);
-  m_ui->widgetPFD->setRoll(roll);
+if(senswitch)
+{
+    m_ui->widgetPFD->setPitch(pixpitch);
+    m_ui->widgetPFD->setRoll(pixroll);
+    m_ui->widgetPFD->setHeading(pixyaw);
+}
+else
+{
+    m_ui->widgetPFD->setPitch(pitch);
+    m_ui->widgetPFD->setRoll(roll);
+    m_ui->widgetPFD->setHeading(yaw);
+}
+
+//myPlot = new QwtPlot("Two Curves", parent);
+
+
+  //m_ui->widgetPFD->setPitch(pitch);
+  //m_ui->widgetPFD->setRoll(roll);
   m_ui->widgetPFD->setClimbRate(climb_rate * 0.001);
   m_ui->widgetPFD->setMachNo(mach);
   m_ui->widgetPFD->setSlipSkid(beta);
-  m_ui->widgetPFD->setHeading(nav->GetMagHdg());
+  //m_ui->widgetPFD->setHeading(nav->GetMagHdg());
   if (FPM_enabled) {
       m_ui->widgetPFD->setFlightPathMarker(-aoa, 0, true);
   } else {
       m_ui->widgetPFD->setFlightPathMarker(0, 0, false);
   }
-
+  //m_ui->Mthrottle->setSliderPosition(int(throttle*100));
   // Send data to tab 1 (Attitude)
   m_ui->dataLabel_1->setText(QString::number(pitch, 'f', 4));
   m_ui->dataLabel_2->setText(QString::number(roll, 'f', 4));
@@ -541,6 +617,9 @@ void MainWindow::UpdateDisplays()
   m_ui->dataLabel_9->setText(QString::number(P, 'f', 4));
   m_ui->dataLabel_10->setText(QString::number(Q, 'f', 4));
   m_ui->dataLabel_11->setText(QString::number(R, 'f', 4));
+  m_ui->dataLabel_121->setText(QString::number(pixpitch, 'f', 4));
+  m_ui->dataLabel_122->setText(QString::number(pixroll, 'f', 4));
+  m_ui->dataLabel_123->setText(QString::number(pixyaw, 'f', 4));
                // 12
 
   // Send data to tab 2 (Speed)
@@ -565,7 +644,8 @@ void MainWindow::UpdateDisplays()
   m_ui->dataLabel_29->setText(QString::number(GeoLat, 'f', 5));
   m_ui->dataLabel_30->setText(QString::number(GeoAlt, 'f', 4));
   m_ui->dataLabel_31->setText(QString::number(ECRadius, 'f', 8));
-               // 32-36
+  m_ui->dataLabel_32->setText(QString::number(ap_elevator_cmd, 'f', 5));
+  m_ui->dataLabel_33->setText(QString::number(ap_aileron_cmd, 'f', 5));             // 32-36
 
   // Send data to tab 4 (Propulsion)
   m_ui->dataLabel_37->setText(QString::number(thrust[0], 'f', 0));
@@ -639,6 +719,11 @@ void MainWindow::UpdateDisplays()
   //m_ui->dataLabel_118->setText(QString::number(_simtime, 'f', 2));
   //m_ui->dataLabel_119->setText(QString::number(_simtime, 'f', 2));
   //m_ui->dataLabel_120->setText(QString::number(_simtime, 'f', 2));
+  m_ui->label_32->setText(QString::number(dimu, 'f', 3));
+  m_ui->aserv->setText(QString::number(pixlat, 'f', 2));
+  m_ui->rdserv->setText(QString::number(pixalt, 'f', 2));
+  m_ui->elservo->setText(QString::number(pixlon, 'f', 2));
+  m_ui->batperc->setValue((int)(pix_airspeed));
 
 
   m_ui->widgetPFD->update();
@@ -647,7 +732,17 @@ void MainWindow::UpdateDisplays()
 
 }
 
-
+//void MainWindow::distancefromIMU()
+//{
+//  dimu = dold + (pixaccx*dt*dt)/2;
+//  std::cout << "heading setpoint :" <<pixaccx<<endl;
+//  if(dimu<1) {
+//      throttle = 0.1;
+//  }
+//  else{
+//      throttle = 0;
+//  }
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Send updated position information from JSBSim to the navigation computer
@@ -673,9 +768,10 @@ void MainWindow::UpdateNavigation()
   }
 
   // debug
-  intercept = -nav->GetCourseErrorDeg();
+  intercept = nav->GetCourseErrorDeg();
   dist = nav->GetDistance();
-  gserror = -nav->GetGSErrorDeg();
+  //gserror = -nav->GetGSErrorDeg();
+  currentgs = -nav->GetGSErrorDeg();
 }
 
 
@@ -789,12 +885,12 @@ void MainWindow::readSettings(void) {
 
     settings = new QSettings(iniPath, QSettings::IniFormat);
     m_ui->console->appendPlainText("Reading settings from: " + settings->fileName());
-
     JSBSimExecutable = settings->value("cmdline/executable").toString();
-    JSBSimArgs << "--root=" + installPath + "/JSBSim";
-    JSBSimArgs << settings->value("cmdline/realtime").toString();
-    JSBSimArgs << settings->value("cmdline/aircraft").toString();
-    JSBSimArgs << settings->value("cmdline/initfile").toString();
+    //JSBSimArgs << "--root=" + installPath + "/JSBSim";
+    JSBSimArgs << settings->value("cmdline/configfile").toString();
+    JSBSimArgs << settings->value("cmdline/device").toString();
+    JSBSimArgs << settings->value("cmdline/baudrate").toString();
+    JSBSimArgs << settings->value("cmdline/scene").toString();
     QString arg1 = settings->value("cmdline/arg1").toString();
     QString arg2 = settings->value("cmdline/arg2").toString();
     QString arg3 = settings->value("cmdline/arg3").toString();
@@ -1012,6 +1108,8 @@ void MainWindow::on_ILSButton_clicked()
 void MainWindow::on_spinBox_2_valueChanged(int arg1)
 {
     ap->setDesiredHdg((double)arg1);
+    des_hdg = (double)arg1;
+    std::cout << "heading setpoint :" <<des_hdg<<endl;
 }
 
 // toggle Flight Path Marker on/off
@@ -1024,12 +1122,14 @@ void MainWindow::on_FPMButton_toggled(bool checked)
 void MainWindow::on_spinBox_3_valueChanged(int arg1)
 {
     ap->setDesiredAlt((double)arg1);
+     des_alt = (double)arg1;
 }
 
 // set desired vertical speed (feet per minute)
 void MainWindow::on_spinBox_4_valueChanged(int arg1)
 {
     ap->setDesiredVS((double)arg1);
+    //des_alt = (double)arg1;
 }
 
 // toggle flight director visibility
@@ -1038,12 +1138,30 @@ void MainWindow::on_FDButton_clicked(bool checked)
     FDvisible = checked;
 }
 
+//toggle for autopilot mode
+void MainWindow::on_APButton_clicked(bool checked)
+{
+   if(checked) {
+
+      ap->setEngaged(true);
+      // std::cout << "ap mode engaged: "<<ap->getEngaged()<<endl;
+   }
+   else
+   {
+       ap->setEngaged(false);
+       std::cout << "false: "<<endl;
+   }
+}
 // engage lateral mode = Heading
 void MainWindow::on_HDGButton_clicked(bool checked)
 {
     if (checked) {
         ap->setLMode(autopilot::Heading);
         m_ui->LOCButton->setChecked(false);
+        m_ui->wingLevel->setChecked(false);
+    }
+    else {
+        ap->setLMode(autopilot::LNone);
     }
 }
 
@@ -1051,13 +1169,16 @@ void MainWindow::on_HDGButton_clicked(bool checked)
 void MainWindow::on_AltHoldButton_clicked(bool checked)
 {
     if (checked) {
-        int alt = ((int)(altitude/100.0)) * 100;
-        m_ui->spinBox_3->setValue(alt);
-        ap->setDesiredAlt((double)alt);
+      //  int alt = ((int)(altAGL/100.0)) * 100;
+      //  m_ui->spinBox_3->setValue(alt);
+       // ap->setDesiredAlt((double)alt);
         ap->setVMode(autopilot::AltHold);
         m_ui->VSButton->setChecked(false);
         m_ui->FLCHButton->setChecked(false);
         m_ui->GSButton->setChecked(false);
+    }
+    else {
+         ap->setVMode(autopilot::VNone);
     }
 }
 
@@ -1065,13 +1186,14 @@ void MainWindow::on_AltHoldButton_clicked(bool checked)
 void MainWindow::on_VSButton_clicked(bool checked)
 {
     if (checked) {
-        int vs = ((int)(climb_rate/100.0)) * 100;
-        m_ui->spinBox_4->setValue(vs);
-        ap->setDesiredVS((double)vs);
+      //  int vs = ((int)(climb_rate/100.0)) * 100;
+       // m_ui->spinBox_4->setValue(vs);
+        //ap->setDesiredVS((double)vs);
         ap->setVMode(autopilot::VertSpeed);
         m_ui->AltHoldButton->setChecked(false);
         m_ui->FLCHButton->setChecked(false);
         m_ui->GSButton->setChecked(false);
+        std::cout << "vsm0de " << endl;
     }
 }
 
@@ -1091,10 +1213,12 @@ void MainWindow::on_GSButton_clicked(bool checked)
 {
     if (checked) {
         ap->setVMode(autopilot::ILS);
+
         m_ui->VSButton->setChecked(false);
         m_ui->FLCHButton->setChecked(false);
         m_ui->AltHoldButton->setChecked(false);
     }
+        nav->SetGSEngaged(m_ui->GSButton->isChecked());
 }
 
 // start/stop sending data to FlightGear
@@ -1173,7 +1297,7 @@ void MainWindow::setDebugWatch(void)
   debug->addItem( "radius to CG (ft)", &CGRadius);
   debug->addItem("LOC error (deg)", &intercept);
   debug->addItem("ILS distance (nm)", &dist);
-  debug->addItem("GS error (deg)", &gserror);
+  debug->addItem("GS error (deg)", &currentgs);
 }
 
 
@@ -1202,10 +1326,30 @@ void MainWindow::doDebugCalculations(void)
 void MainWindow::UpdateAutopilot()
 {
     double _dt = 1.0 / framerate;
+/// Substituting values for desired vs
 
-    ap_elevator_cmd = ap->updateVMode(_dt, pitch, altitude);
-    ap_aileron_cmd = ap->updateLMode(_dt, roll, nav->GetMagHdg());
-
+//    if(dist < 2000 && dist>1000){
+//        dist2 = dist;
+//        // std::cout << "true"<<endl;
+//        //  std::cout << "dist2: "<<dist2<<endl;
+//    }
+    //gserror = -atan2(400, dist2)*57.29577951;
+   // currentgs = -atan2(altitude, dist)*57.29577951;
+   // ap_elevator_cmd = ap->updateVMode(_dt, pitch, altitude, climb_rate, gserror);
+    ap_elevator_cmd = ap->updateVMode(_dt, pitch, altitude, currentgs, gserror);
+  if(altAGL>10){
+    ap_aileron_cmd = ap->updateLMode(_dt, roll, yaw, intercept, P, altAGL);
+  }
+  else {
+        ap_rudder_cmd = ap->updateLMode(_dt, roll, yaw, intercept, P, altAGL);
+  }
+    //ap_rudder_cmd  = ap->updateydMode(_dt, 0.0, R);
+   // ap_rudder_cmd = ap->updateLMode(_dt, roll, pixyaw, intercept);
+   //std::cout << "elevator: "<<ap_elevator_cmd<<endl;
+   // std::cout << "currentGS: "<<currentgs<<endl;
+  if(m_ui->ILSButton->isChecked()){
+      ap->setDesiredHdg(intercept);
+  }
     // Flight Director
     double Vscale = 0.076923077;  // 13 degrees pitch is full deflection
     double Hscale = 0.04;         // 25 degrees bank is full deflection
@@ -1254,4 +1398,96 @@ void MainWindow::sendFlightGearData(void)
 
    FGSocket->Send();
 }
+
+
+void MainWindow::on_M_elevator_valueChanged(int value)
+{
+    elevatorSlider = double(m_ui->M_elevator->value())/100;
+}
+
+void MainWindow::on_M_aileron_valueChanged(int value)
+{
+    aileronSlider = double (m_ui->M_aileron->value())/100;
+}
+
+
+
+void MainWindow::on_M_rudder_valueChanged(int value)
+{
+    rudderSlider = double (m_ui->M_rudder->value())/100;
+    //std::cout << "servo:: " <<pitch<< endl;
+}
+
+void MainWindow::on_arm_clicked(bool checked)
+{
+    if(checked)
+    {
+        armed_ = 1;
+    }
+    else {
+        armed_ = 0;
+    }
+}
+
+
+
+void MainWindow::on_doubleSpinBox_2_valueChanged(double arg1)
+{
+    ap->apKp = arg1;
+}
+
+
+
+void MainWindow::on_doubleSpinBox_3_valueChanged(double arg1)
+{
+    ap->apKd = arg1;
+}
+
+
+
+void MainWindow::on_doubleSpinBox_4_valueChanged(double arg1)
+{
+    ap->apKi = arg1;
+}
+
+void MainWindow::on_sensors_clicked(bool checked)
+{
+      senswitch = checked;
+}
+
+void MainWindow::on_progressBar_valueChanged(int value)
+{
+
+}
+
+void MainWindow::on_Mthrottle_valueChanged(int value)
+{
+    throttle = double (m_ui->Mthrottle->value())/100;
+    // std::cout << "servo:: " <<throttle<< endl;
+
+}
+
+void MainWindow::on_wingLevel_clicked(bool checked)
+{
+    if (checked) {
+        ap->setLMode(autopilot::Winglevel);
+        m_ui->LOCButton->setChecked(false);
+        m_ui->HDGButton->setChecked(false);
+    }
+    else {
+        ap->setLMode(autopilot::LNone);
+    }
+}
+
+void MainWindow::on_spinBox_5_valueChanged(int arg1)
+{
+    gserror = arg1;
+}
+
+void MainWindow::on_Trim_pressed()
+{
+    pitch_trim = elevator_pos;
+std::cout << "trim" <<pitch_trim<<endl;
+}
+
 

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 set( cmake_verbose_makefile TRUE)
 
-PROJECT(qtjsbsim)
+PROJECT(Controlpanel)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 

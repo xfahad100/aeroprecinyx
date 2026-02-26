@@ -7,7 +7,6 @@
 #define MAINWINDOW_H
 
 ////////////////////////////////////////////////////////////////////////////////
-
 #include <QMainWindow>
 #include <QTime>
 #include <QTimer>
@@ -21,15 +20,22 @@
 #include <QSettings>
 #include <QButtonGroup>
 #include <QDir>
+
+//#include <qwt_plot.h>
+//#include <qwt_plot_curve.h>
+
 #include "viewer/viewer.h"
 #include "debug/debugtable.h"
 #include "jsbsim/jsbsim.h"
 #include "nav/navigation.h"
 #include "autopilot/autopilot.h"
+#include "autopilot/pid.h"
 #include "input/joystick.h"
 #include "flightgear/outsocket.h"
+#include "math.h"
 
-
+//#include <qwt_plot.h>
+//#include <qwt_plot_curve.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -76,7 +82,11 @@ public:
 
     void getJSBSimData(void);
 
+    double pitcharr[100];
+    double time[100];
+
     double aileron, elevator, rudder, throttle;
+    double aileronSlider, elevatorSlider, rudderSlider;
     double pitch_trim, aileron_trim, rudder_trim;
     float  pitch_trim_rate;
     double pitch_trim_pos, aileron_trim_pos, rudder_trim_pos;
@@ -84,8 +94,12 @@ public:
     double phi, theta, psi, P, Q, R;
     double altitude, latitude, longitude, GeoLat;
     double GeoAlt, altAGL, altTerrain, ECRadius, CGRadius;
-    double airspeed, vtrue, gs, climb_rate, mach;
+    double pix_airspeed, airspeed, vtrue, gs, climb_rate, mach;
     double vN, vE, vD, vU, vV, vW;
+    float pixpitch, pixroll, pixyaw;
+    double pixalt, pixlat, pixlon;
+    double pixaccx, pixaccy, pixaccz;
+    double dimu, dold;
     double thrust[10];
     double n1[10];
     double n2[10];
@@ -116,17 +130,27 @@ public:
     double rEllipse;
     bool FPM_enabled;
     bool FDvisible;
-    double ap_elevator_cmd, ap_aileron_cmd;
+    bool senswitch;
+    int desired_vs;
+    float armed_;
+    double ap_elevator_cmd, ap_aileron_cmd, ap_rudder_cmd;
+    float battper;
+    double des_alt;
+    double des_hdg;
+    double currentgs;
+    bool GSbool=0;
+    double elevnorm;
 
     quint16 outputPort, inputPort, telnetPort;
     QHostAddress hostAddress;
 
     navigation* nav;
     autopilot* ap;
+    PIDImpl* pid;
 
     // temporary debug variables
     double intercept;
-    double dist;
+    double dist,dist2;
     double gserror;
 
 public slots:
@@ -140,6 +164,7 @@ public slots:
 protected:
 
     void UpdateDisplays(void);
+    void distancefromIMU(void);
     void UpdateNavigation(void);
     void UpdateAutopilot(void);
     void UpdateFlightGear(void);
@@ -178,6 +203,35 @@ private slots:
     void on_GSButton_clicked(bool checked);
     void on_FGButton_clicked(bool checked);
 
+    void on_M_elevator_valueChanged(int value);
+
+    void on_M_aileron_valueChanged(int value);
+
+    void on_M_rudder_valueChanged(int value);
+    void on_APButton_clicked(bool checked);
+
+    void on_arm_clicked(bool checked);
+
+    void on_doubleSpinBox_2_valueChanged(double arg1);
+
+    void on_doubleSpinBox_3_valueChanged(double arg1);
+
+    void on_doubleSpinBox_4_valueChanged(double arg1);
+
+    void on_sensors_clicked(bool checked);
+
+    void on_progressBar_valueChanged(int value);
+
+    //void on_qwtPlot_itemAttached(QwtPlotItem *plotItem, bool on);
+
+    void on_Mthrottle_valueChanged(int value);
+
+    void on_wingLevel_clicked(bool checked);
+
+    void on_spinBox_5_valueChanged(int arg1);
+
+    void on_Trim_pressed();
+
 private:
 
     Ui::MainWindow * m_ui;
@@ -200,6 +254,7 @@ private:
     Joystick* joystick;
     OutSocket* FGSocket;
     bool ConnectToFG;
+    bool ptrue;
 
     void readSettings(void);
     void writeSettings(void);
