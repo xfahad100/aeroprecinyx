@@ -37,6 +37,7 @@ MainWindow::MainWindow( QWidget * parent ) :
     m_ui->setupUi( this );
     viewer = new Viewer(parent);
     debug = new debugTable(m_ui->tab_15);
+    m_ui->debugLayout->addWidget(debug);
 
     installPath = getInstallPath();
     iniPath = installPath + "/src/qtjsbsim.ini";

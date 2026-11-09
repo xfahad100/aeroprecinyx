@@ -6,7 +6,7 @@
 
 message("Qt Version "$$QT_VERSION)
 
-QT  += widgets svg network webkitwidgets charts
+QT  += widgets svg network webkitwidgets
 
 TARGET = qtjsbsim
 TEMPLATE = app

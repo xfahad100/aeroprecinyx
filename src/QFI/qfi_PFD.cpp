@@ -186,6 +186,10 @@ void qfi_PFD::init()
     m_itemMask->setTransform( QTransform::fromScale( m_scaleX, m_scaleY ), true );
     m_scene->addItem( m_itemMask );
 
+    // The moving horizon extends beyond the visible instrument. Keep the
+    // view bounds tied to the new size so automatic scene growth cannot
+    // shift the display after a resize or a telemetry update.
+    setSceneRect( 0.0, 0.0, width(), height() );
     centerOn( width() / 2.0f , height() / 2.0f );
 
     updateView();

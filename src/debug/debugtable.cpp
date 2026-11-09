@@ -16,8 +16,7 @@ debugTable::debugTable(QWidget *parent) :
     ui->tableWidget->setColumnCount(2);
     ui->tableWidget->horizontalHeader()->setVisible(false);
     ui->tableWidget->verticalHeader()->setVisible(false);
-    ui->tableWidget->setColumnWidth(0, 200);
-    ui->tableWidget->setColumnWidth(1, 200);
+    ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
 
 debugTable::~debugTable()
